@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CadastroPessoas.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace CadastroPessoas.Domain.Interfaces
 {
-    internal interface IViaCepService
+    public interface IViaCepService
     {
+        Task<Endereco?> ConsultarEnderecoPorCepAsync(string cep);
     }
 }
