@@ -28,7 +28,7 @@ namespace CadastroPessoas.Infrastructure.SQL.Services
             };
         }
 
-        public async Task<Endereco?> ConsultaEnderecoPorCepAsync(string cep)
+        public async Task<Endereco?> ConsultarEnderecoPorCepAsync(string cep)
         {
             try
             {

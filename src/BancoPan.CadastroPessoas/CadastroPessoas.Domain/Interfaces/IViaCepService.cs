@@ -9,6 +9,6 @@ namespace CadastroPessoas.Domain.Interfaces
 {
     public interface IViaCepService
     {
-        Task<Endereco?> ConsultaEnderecoPorCepAsync(string cep);
+        Task<Endereco?> ConsultarEnderecoPorCepAsync(string cep);
     }
 }

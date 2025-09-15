@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CadastroPessoas.Application.Interfaces
+namespace CadastroPessoas.Domain.Interfaces
 {
     public interface IPessoaRepository
     {

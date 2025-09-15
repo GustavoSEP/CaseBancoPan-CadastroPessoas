@@ -1,4 +1,4 @@
-﻿using CadastroPessoas.Application.Interfaces;
+﻿using CadastroPessoas.Domain.Interfaces;
 using CadastroPessoas.Domain.Entities;
 using CadastroPessoas.Infrastructure.SQL.Data;
 using Microsoft.EntityFrameworkCore;

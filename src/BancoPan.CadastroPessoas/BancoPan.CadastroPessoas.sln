@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadastroPessoas.Application
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadastroPessoas.Domain", "CadastroPessoas.Domain\CadastroPessoas.Domain.csproj", "{3FDAEE97-B99B-3D84-C96B-5BEE9A4DEDF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadastroPessoas.Infrasctructure.SQL", "CadastroPessoas.Infrasctructure.SQL\CadastroPessoas.Infrasctructure.SQL.csproj", "{E98B886A-1957-021F-EB6D-59726B3892FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadastroPessoas.Infrastructure.SQL", "CadastroPessoas.Infrasctructure.SQL\CadastroPessoas.Infrastructure.SQL.csproj", "{E98B886A-1957-021F-EB6D-59726B3892FA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadastroPessoas.Tests", "CadastroPessoas.Tests\CadastroPessoas.Tests.csproj", "{DE39EF88-3B45-79F9-81E5-EA906568A1C4}"
 EndProject
