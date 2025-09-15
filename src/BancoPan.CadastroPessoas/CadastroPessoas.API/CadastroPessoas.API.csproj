@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CadastroPessoa.Application\CadastroPessoas.Application.csproj" />
-    <ProjectReference Include="..\CadastroPessoas.Infrasctructure.SQL\CadastroPessoas.Infrasctructure.SQL.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Infrasctructure.SQL\CadastroPessoas.Infrastructure.SQL.csproj" />
   </ItemGroup>
 
 </Project>
