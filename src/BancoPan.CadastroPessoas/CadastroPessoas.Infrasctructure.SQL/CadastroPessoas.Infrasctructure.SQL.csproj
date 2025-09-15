@@ -8,6 +8,22 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CadastroPessoas.Domain\CadastroPessoas.Domain.csproj" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.20" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.20">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
+	<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.20" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.20">
+		<PrivateAssets>all</PrivateAssets>
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
+	<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>
