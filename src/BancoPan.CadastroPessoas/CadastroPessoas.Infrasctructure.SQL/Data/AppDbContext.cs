@@ -1,18 +1,35 @@
 ﻿using CadastroPessoas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
-namespace CadastroPessoas.Infrasctructure.SQL.Data
+namespace CadastroPessoas.Infrastructure.SQL.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base (options)
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-        public DbSet<CadastroPessoas.Domain.Entities.PessoaFisica> PessoasFisicas { get; set; }
-        public DbSet<CadastroPessoas.Domain.Entities.Endereco> Enderecos { get; set; }
+
+        public DbSet<PessoaFisica> PessoasFisicas { get; set; }
+        public DbSet<Endereco> Enderecos { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                var config = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
+                    .Build();
+
+                var connectionString = config.GetConnectionString("DefaultConnection");
+                optionsBuilder.UseSqlServer(connectionString);
+            }
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // PessoaFisica
             modelBuilder.Entity<PessoaFisica>(b =>
             {
                 b.HasKey(p => p.Id);
@@ -20,7 +37,6 @@ namespace CadastroPessoas.Infrasctructure.SQL.Data
                 b.Property(p => p.Nome).HasMaxLength(200);
                 b.Property(p => p.CPF).HasMaxLength(20);
                 b.Property(p => p.TipoPessoa).HasMaxLength(1);
-
                 b.HasIndex(p => p.CPF).IsUnique();
 
                 b.OwnsOne(p => p.Endereco, e =>

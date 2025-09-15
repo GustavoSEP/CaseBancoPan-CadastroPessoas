@@ -1,9 +1,9 @@
 ﻿using CadastroPessoas.Application.Interfaces;
 using CadastroPessoas.Domain.Entities;
-using CadastroPessoas.Infrasctructure.SQL.Data;
+using CadastroPessoas.Infrastructure.SQL.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace CadastroPessoas.Infrasctructure.SQL.Repositories
+namespace CadastroPessoas.Infrastructure.SQL.Repositories
 {
     public class PessoaRepositorySQL : IPessoaRepository
     {
