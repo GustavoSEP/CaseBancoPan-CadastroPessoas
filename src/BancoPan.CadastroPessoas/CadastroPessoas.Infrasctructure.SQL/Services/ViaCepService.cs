@@ -2,6 +2,7 @@
 using CadastroPessoas.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,11 +18,18 @@ namespace CadastroPessoas.Infrastructure.SQL.Services
         private readonly JsonSerializerOptions _jsonOptions;
         private readonly IMemoryCache _cache;
         private readonly TimeSpan _cacheDuration = TimeSpan.FromHours(6);
+        private readonly string _baseUrl;
 
-        public ViaCepService(HttpClient httpClient, IMemoryCache cache)
+        public ViaCepService(HttpClient httpClient, IMemoryCache cache, IConfiguration configuration)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+
+            _baseUrl = configuration["ViaCep:BaseUrl"] ?? "https://viacep.com.br/ws/";
+            
+            if (!_baseUrl.EndsWith("/"))
+                _baseUrl += "/";
+                
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -41,7 +49,9 @@ namespace CadastroPessoas.Infrastructure.SQL.Services
                     return cached;
                 }
 
-                using var response = await _httpClient.GetAsync($"{cepNormalized}/json/");
+                var requestUrl = $"{_baseUrl}{cepNormalized}/json/";
+                using var response = await _httpClient.GetAsync(requestUrl);
+                
                 if (!response.IsSuccessStatusCode)
                     throw new Exception($"Erro ao consultar o CEP: {response.ReasonPhrase}");
 
@@ -71,16 +81,17 @@ namespace CadastroPessoas.Infrastructure.SQL.Services
             {
                 return null;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new Exception($"ViaCepService: erro inesperado ao consultar ViaCEP");
+                throw new Exception($"ViaCepService: erro inesperado ao consultar ViaCEP: {ex.Message}");
             }
-
         }
+        
         private static string NormalizeCep(string cep)
         {
             return cep.Replace("-", "").Trim();
         }
+        
         private class ViaCepResponse
         {
             public string? Cep { get; set; }
