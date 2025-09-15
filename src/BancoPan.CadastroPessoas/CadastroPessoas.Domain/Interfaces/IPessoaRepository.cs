@@ -7,10 +7,16 @@ using System.Threading.Tasks;
 
 namespace CadastroPessoas.Application.Interfaces
 {
-    public interface IPessoaFisicaService
+    public interface IPessoaRepository
     {
 
         Task<PessoaFisica> AddPessoaFisicaAsync(PessoaFisica pessoa);
         Task<IEnumerable<PessoaFisica>> ListPessoaFisicaAsync();
+        Task<PessoaFisica?> GetPessoaFisicaByIdAsync(int id);
+        Task<PessoaFisica?> GetPessoaFisicaByCpfAsync(string cpf);
+        Task<bool> ExistsPessoaFisicaByCpfAsync(string cpf);
+        Task UpdatePessoaFisicaAsync(PessoaFisica pessoa);
+        Task DeletePessoaFisicaAsync(int id);
+
     }
 }

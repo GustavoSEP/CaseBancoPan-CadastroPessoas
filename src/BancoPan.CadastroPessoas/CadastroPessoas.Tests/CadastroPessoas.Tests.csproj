@@ -17,6 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CadastroPessoa.Application\CadastroPessoas.Application.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.API\CadastroPessoas.API.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Domain\CadastroPessoas.Domain.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Infrasctructure.SQL\CadastroPessoas.Infrasctructure.SQL.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
