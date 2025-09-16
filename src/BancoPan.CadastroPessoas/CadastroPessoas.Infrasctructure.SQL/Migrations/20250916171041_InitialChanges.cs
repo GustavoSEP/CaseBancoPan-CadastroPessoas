@@ -5,7 +5,7 @@
 namespace CadastroPessoas.Infrastructure.SQL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialChanges : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,18 +18,7 @@ namespace CadastroPessoas.Infrastructure.SQL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nome = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     CPF = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    TipoPessoa = table.Column<string>(type: "nvarchar(1)", maxLength: 1, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PessoasFisicas", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Enderecos",
-                columns: table => new
-                {
-                    PessoaFisicaId = table.Column<int>(type: "int", nullable: false),
+                    TipoPessoa = table.Column<string>(type: "nvarchar(1)", maxLength: 1, nullable: false),
                     Endereco_Cep = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Endereco_Logradouro = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Endereco_Bairro = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
@@ -40,13 +29,30 @@ namespace CadastroPessoas.Infrastructure.SQL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Enderecos", x => x.PessoaFisicaId);
-                    table.ForeignKey(
-                        name: "FK_Enderecos_PessoasFisicas_PessoaFisicaId",
-                        column: x => x.PessoaFisicaId,
-                        principalTable: "PessoasFisicas",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                    table.PrimaryKey("PK_PessoasFisicas", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PessoasJuridicas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RazaoSocial = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    NomeFantasia = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    CNPJ = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    TipoPessoa = table.Column<string>(type: "nvarchar(1)", maxLength: 1, nullable: false),
+                    Endereco_Cep = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Endereco_Logradouro = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Endereco_Bairro = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Endereco_Cidade = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Endereco_Estado = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Endereco_Numero = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Endereco_Complemento = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PessoasJuridicas", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
@@ -54,16 +60,22 @@ namespace CadastroPessoas.Infrastructure.SQL.Migrations
                 table: "PessoasFisicas",
                 column: "CPF",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PessoasJuridicas_CNPJ",
+                table: "PessoasJuridicas",
+                column: "CNPJ",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Enderecos");
+                name: "PessoasFisicas");
 
             migrationBuilder.DropTable(
-                name: "PessoasFisicas");
+                name: "PessoasJuridicas");
         }
     }
 }

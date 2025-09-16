@@ -16,7 +16,7 @@ namespace CadastroPessoas.Infrastructure.SQL.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -50,6 +50,42 @@ namespace CadastroPessoas.Infrastructure.SQL.Migrations
                         .IsUnique();
 
                     b.ToTable("PessoasFisicas");
+                });
+
+            modelBuilder.Entity("CadastroPessoas.Domain.Entities.PessoaJuridica", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CNPJ")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("NomeFantasia")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("RazaoSocial")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TipoPessoa")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CNPJ")
+                        .IsUnique();
+
+                    b.ToTable("PessoasJuridicas");
                 });
 
             modelBuilder.Entity("CadastroPessoas.Domain.Entities.PessoaFisica", b =>
@@ -103,10 +139,71 @@ namespace CadastroPessoas.Infrastructure.SQL.Migrations
 
                             b1.HasKey("PessoaFisicaId");
 
-                            b1.ToTable("Enderecos");
+                            b1.ToTable("PessoasFisicas");
 
                             b1.WithOwner()
                                 .HasForeignKey("PessoaFisicaId");
+                        });
+
+                    b.Navigation("Endereco")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CadastroPessoas.Domain.Entities.PessoaJuridica", b =>
+                {
+                    b.OwnsOne("CadastroPessoas.Domain.Entities.Endereco", "Endereco", b1 =>
+                        {
+                            b1.Property<int>("PessoaJuridicaId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("Bairro")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)")
+                                .HasColumnName("Endereco_Bairro");
+
+                            b1.Property<string>("Cep")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)")
+                                .HasColumnName("Endereco_Cep");
+
+                            b1.Property<string>("Cidade")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)")
+                                .HasColumnName("Endereco_Cidade");
+
+                            b1.Property<string>("Complemento")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("Endereco_Complemento");
+
+                            b1.Property<string>("Estado")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)")
+                                .HasColumnName("Endereco_Estado");
+
+                            b1.Property<string>("Logradouro")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("Endereco_Logradouro");
+
+                            b1.Property<string>("Numero")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)")
+                                .HasColumnName("Endereco_Numero");
+
+                            b1.HasKey("PessoaJuridicaId");
+
+                            b1.ToTable("PessoasJuridicas");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PessoaJuridicaId");
                         });
 
                     b.Navigation("Endereco")
