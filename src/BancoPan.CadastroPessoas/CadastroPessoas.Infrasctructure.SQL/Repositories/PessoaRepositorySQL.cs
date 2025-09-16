@@ -7,14 +7,12 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
 {
     public class PessoaRepositorySQL : IPessoaRepository
     {
-        private readonly AppDbContext _context; // Utilizado para se conectar ao SQL (instalei o SQL Express e gerei um banco de dados local.
-                                                // ConnectionString vai ficar no appssetings.json)
+        private readonly AppDbContext _context;
 
         public PessoaRepositorySQL(AppDbContext context)
         {
-            _context = context ?? throw new AbandonedMutexException(nameof(context));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-
         public async Task<PessoaFisica> AddPessoaFisicaAsync(PessoaFisica pessoa)
         {
             try
@@ -25,7 +23,7 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao adicionar Pessoa Física: {ex.Message}");
+                throw new Exception("Erro ao inserir Pessoa Física no banco de dados: " + ex.Message, ex);
             }
         }
 
@@ -37,11 +35,11 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao listar Pessoas Fisicas: {ex.Message} - {ex}");
+                throw new Exception("Erro ao listar Pessoas Físicas: " + ex.Message, ex);
             }
         }
 
-        public async Task<PessoaFisica> GetPessoaFisicaByIdAsync(int id)
+        public async Task<PessoaFisica?> GetPessoaFisicaByIdAsync(int id)
         {
             try
             {
@@ -49,7 +47,7 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao buscar Pessoa Física por ID. Erro: {ex.Message} - {ex} ");
+                throw new Exception("Erro ao buscar Pessoa Física por Id: " + ex.Message, ex);
             }
         }
 
@@ -58,11 +56,11 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             try
             {
                 return await _context.PessoasFisicas.AsNoTracking()
-                                .FirstOrDefaultAsync(pessoa => pessoa.CPF == cpf);
+                    .FirstOrDefaultAsync(p => p.CPF == cpf);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao buscar Pessoa Fisica por Documento. Erro:  {ex.Message} - {ex} ");
+                throw new Exception("Erro ao buscar Pessoa Física por CPF: " + ex.Message, ex);
             }
         }
 
@@ -71,13 +69,14 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             try
             {
                 return await _context.PessoasFisicas.AsNoTracking()
-                                .AnyAsync(pessoa => pessoa.CPF == cpf);
+                    .AnyAsync(p => p.CPF == cpf);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao verificar existência de Pessoa Física pelo CPF: {cpf}. Erro: {ex.Message} - {ex} ");
+                throw new Exception("Erro ao verificar existência de CPF: " + ex.Message, ex);
             }
         }
+
         public async Task UpdatePessoaFisicaAsync(PessoaFisica pessoa)
         {
             try
@@ -85,9 +84,9 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
                 _context.PessoasFisicas.Update(pessoa);
                 await _context.SaveChangesAsync();
             }
-            catch
+            catch (Exception ex)
             {
-                throw new Exception($"Erro ao atualizar Pessoa Física com ID: {pessoa.Id}");
+                throw new Exception("Erro ao atualizar Pessoa Física: " + ex.Message, ex);
             }
         }
 
@@ -95,20 +94,16 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
         {
             try
             {
-                var pessoa = await _context.PessoasFisicas.FindAsync(id);
-                if (pessoa != null)
+                var p = await _context.PessoasFisicas.FindAsync(id);
+                if (p != null)
                 {
-                    _context.PessoasFisicas.Remove(pessoa);
+                    _context.PessoasFisicas.Remove(p);
                     await _context.SaveChangesAsync();
-                }
-                else
-                {
-                    throw new Exception($"Pessoa Física com ID: {id} não encontrada para exclusão.");
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao deletar Pessoa Física com ID: {id}. Erro: {ex.Message} - {ex} ");
+                throw new Exception("Erro ao deletar Pessoa Física: " + ex.Message, ex);
             }
         }
     }

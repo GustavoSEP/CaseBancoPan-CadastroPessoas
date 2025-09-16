@@ -1,35 +1,28 @@
-﻿using CadastroPessoas.Domain.Entities;
-using CadastroPessoas.Domain.Interfaces;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using CadastroPessoas.Domain.Entities;
+using CadastroPessoas.Domain.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
-namespace CadastroPessoas.Infrastructure.SQL.Services
+namespace PessoaCadastro.Infrastructure.SQL.Services
 {
     public class ViaCepService : IViaCepService
     {
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonOptions;
         private readonly IMemoryCache _cache;
+        private readonly ILogger<ViaCepService> _logger;
         private readonly TimeSpan _cacheDuration = TimeSpan.FromHours(6);
-        private readonly string _baseUrl;
 
-        public ViaCepService(HttpClient httpClient, IMemoryCache cache, IConfiguration configuration)
+        public ViaCepService(HttpClient httpClient, IMemoryCache cache, ILogger<ViaCepService> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _baseUrl = configuration["ViaCep:BaseUrl"] ?? "https://viacep.com.br/ws/";
-            
-            if (!_baseUrl.EndsWith("/"))
-                _baseUrl += "/";
-                
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -38,28 +31,42 @@ namespace CadastroPessoas.Infrastructure.SQL.Services
 
         public async Task<Endereco?> ConsultarEnderecoPorCepAsync(string cep)
         {
+            if (string.IsNullOrWhiteSpace(cep))
+                throw new ArgumentException("CEP é obrigatório.");
+
+            var cepNormalized = NormalizeCep(cep);
+
+            if (_cache.TryGetValue<Endereco>(cepNormalized, out var cached))
+            {
+                _logger.LogDebug("ViaCepService: retornando CEP {Cep} do cache", cepNormalized);
+                return cached;
+            }
+
             try
             {
-                if (string.IsNullOrWhiteSpace(cep))
-                    throw new ArgumentException("CEP não pode ser nulo ou vazio.", nameof(cep));
+                _logger.LogDebug("ViaCepService: consultando ViaCEP para {Cep}", cepNormalized);
+                using var response = await _httpClient.GetAsync($"{cepNormalized}/json/");
 
-                var cepNormalized = NormalizeCep(cep);
-                if (_cache.TryGetValue<Endereco>(cepNormalized, out var cached))
-                {
-                    return cached;
-                }
-
-                var requestUrl = $"{_baseUrl}{cepNormalized}/json/";
-                using var response = await _httpClient.GetAsync(requestUrl);
-                
                 if (!response.IsSuccessStatusCode)
-                    throw new Exception($"Erro ao consultar o CEP: {response.ReasonPhrase}");
+                {
+                    _logger.LogWarning("ViaCepService: ViaCEP retornou status {Status} para {Cep}", (int)response.StatusCode, cepNormalized);
+                    return null;
+                }
 
                 var content = await response.Content.ReadAsStringAsync();
                 var viaCepResponse = JsonSerializer.Deserialize<ViaCepResponse>(content, _jsonOptions);
 
-                if (viaCepResponse == null || viaCepResponse.Erro)
+                if (viaCepResponse == null)
+                {
+                    _logger.LogWarning("ViaCepService: resposta nula do ViaCEP para {Cep}", cepNormalized);
                     return null;
+                }
+
+                if (viaCepResponse.Erro)
+                {
+                    _logger.LogInformation("ViaCepService: ViaCEP informou erro para {Cep}", cepNormalized);
+                    return null;
+                }
 
                 var endereco = new Endereco(
                     viaCepResponse.Cep ?? string.Empty,
@@ -73,25 +80,28 @@ namespace CadastroPessoas.Infrastructure.SQL.Services
 
                 return endereco;
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException tex)
             {
+                _logger.LogWarning(tex, "ViaCepService: timeout ao consultar ViaCEP para {Cep}", cepNormalized);
                 return null;
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException hrex)
             {
+                _logger.LogWarning(hrex, "ViaCepService: falha de requisição ao ViaCEP para {Cep}", cepNormalized);
                 return null;
             }
             catch (Exception ex)
             {
-                throw new Exception($"ViaCepService: erro inesperado ao consultar ViaCEP: {ex.Message}");
+                _logger.LogError(ex, "ViaCepService: erro inesperado ao consultar ViaCEP para {Cep}", cepNormalized);
+                throw;
             }
         }
-        
+
         private static string NormalizeCep(string cep)
         {
             return cep.Replace("-", "").Trim();
         }
-        
+
         private class ViaCepResponse
         {
             public string? Cep { get; set; }
