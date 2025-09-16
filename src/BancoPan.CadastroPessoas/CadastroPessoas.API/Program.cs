@@ -14,20 +14,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// DB
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Memory cache (para cache de CEPs)
 builder.Services.AddMemoryCache();
 
 string? viaCepBase = builder.Configuration.GetValue<string>("ViaCep:BaseUrl");
 
-// Retry + circuit-breaker policies
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
-    // Retry 3 vezes com backoff exponencial
     return HttpPolicyExtensions
         .HandleTransientHttpError()
         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
@@ -35,20 +31,17 @@ static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 
 static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
 {
-    // Após 5 falhas consecutivas, abrir por 30s
     return HttpPolicyExtensions
         .HandleTransientHttpError()
         .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
 }
 
-// Registrar HttpClient para IViaCepService com políticas
 builder.Services.AddHttpClient<IViaCepService, ViaCepService>(client =>
 {
     if (!string.IsNullOrWhiteSpace(viaCepBase))
     {
         client.BaseAddress = new Uri(viaCepBase);
     }
-    // Timeout razoável para ViaCEP
     client.Timeout = TimeSpan.FromSeconds(6);
 })
 
