@@ -106,5 +106,81 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
                 throw new Exception("Erro ao deletar Pessoa Física: " + ex.Message, ex);
             }
         }
+        
+        // PessoaJuridica
+
+        public async Task<PessoaJuridica> AddPessoaJuridicaAsync(PessoaJuridica pessoa)
+        {
+            try
+            {
+                var entry = await _context.PessoasJuridicas.AddAsync(pessoa);
+                await _context.SaveChangesAsync();
+                return entry.Entity;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao inserir Pessoa Jurídica no banco de dados: {ex.Message} ");
+            }
+        }
+        public async Task<IEnumerable<PessoaJuridica>> ListPessoaJuridicaAsync()
+        {
+            try
+            {
+                return await _context.PessoasJuridicas.AsNoTracking().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao listar Pessoas Jurídicas: {ex.Message}");
+            }
+        }
+        public async Task<PessoaJuridica?> GetPessoaJuridicaByIdAsync(int id)
+        {
+            try
+            {
+                return await _context.PessoasJuridicas.FindAsync(id);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao buscar Pessoa Jurídica por Id: " + ex.Message, ex);
+            }
+        }
+        public async Task<PessoaJuridica?> GetPessoaJuridicaByCnpjAsync(string cnpj)
+        {
+            try
+            {
+                return await _context.PessoasJuridicas.AsNoTracking().FirstOrDefaultAsync(p => p.CNPJ == cnpj);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao buscar Pessoa Jurídica por CNPJ: {ex.Message}");
+            }
+        }
+        public async Task<bool> ExistsPessoaJuridicaByCnpjAsync(string cnpj)
+        {
+            try
+            {
+                return await _context.PessoasJuridicas.AsNoTracking().AnyAsync(p => p.CNPJ == cnpj);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao verificar existência de CNPJ: {ex.Message}");
+            }
+        }
+        public async Task DeletePessoaJuridicaAsync(int id)
+        {
+            try
+            {
+                var pessoa = await _context.PessoasJuridicas.FindAsync(id);
+                if (pessoa != null)
+                {
+                    _context.PessoasJuridicas.Remove(pessoa);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao deletar Pessoa Jurídica: {ex.Message}");
+            }
+        }
     }
 }
