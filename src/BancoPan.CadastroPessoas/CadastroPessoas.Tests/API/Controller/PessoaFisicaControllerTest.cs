@@ -9,17 +9,17 @@ using Moq;
 
 namespace CadastroPessoas.Tests.API.Controller
 {
-    public class PessoasFisicasControllerTests
+    public class PessoaFisicaControllerTest
     {
         private readonly Mock<IPessoaFisicaService> _mockService;
-        private readonly Mock<ILogger<PessoasFisicasController>> _mockLogger;
-        private readonly PessoasFisicasController _controller;
+        private readonly Mock<ILogger<PessoaFisicaController>> _mockLogger;
+        private readonly PessoaFisicaController _controller;
 
-        public PessoasFisicasControllerTests()
+        public PessoaFisicaControllerTest()
         {
             _mockService = new Mock<IPessoaFisicaService>();
-            _mockLogger = new Mock<ILogger<PessoasFisicasController>>();
-            _controller = new PessoasFisicasController(_mockService.Object, _mockLogger.Object);
+            _mockLogger = new Mock<ILogger<PessoaFisicaController>>();
+            _controller = new PessoaFisicaController(_mockService.Object, _mockLogger.Object);
 
         }
 

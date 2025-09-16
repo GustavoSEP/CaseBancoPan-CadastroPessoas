@@ -7,12 +7,12 @@ namespace CadastroPessoas.API.Controllers
 {
     [ApiController]
     [Route("api/v1/pessoas/juridicas")]
-    public class PessoasJuridicasController : ControllerBase
+    public class PessoaJuridicaController : ControllerBase
     {
         private readonly IPessoaJuridicaService _service;
-        private readonly ILogger<PessoasJuridicasController> _logger;
+        private readonly ILogger<PessoaJuridicaController> _logger;
 
-        public PessoasJuridicasController(IPessoaJuridicaService service, ILogger<PessoasJuridicasController> logger)
+        public PessoaJuridicaController(IPessoaJuridicaService service, ILogger<PessoaJuridicaController> logger)
         {
             _service = service;
             _logger = logger;
