@@ -30,7 +30,7 @@ namespace CadastroPessoas.Tests.API.Controller
         }
 
         [Fact]
-        public async Task Test_Create_PessoaFisica_ok()
+        public async Task Test_Criar_PessoaFisica_ok()
         {
             var request = new PessoaFisicaRequest
             {
@@ -64,7 +64,7 @@ namespace CadastroPessoas.Tests.API.Controller
         }
 
         [Fact]
-        public async Task Test_Create_PessoaFisica_BadRequest()
+        public async Task Test_Criar_PessoaFisica_BadRequest()
         {
             _controller.ModelState.AddModelError("Nome", "Nome é obrigatório");
             var request = new PessoaFisicaRequest();
@@ -75,7 +75,7 @@ namespace CadastroPessoas.Tests.API.Controller
         }
 
         [Fact]
-        public async Task Test_Create_PessoaFisica_ThrowsException_ServerError()
+        public async Task Test_Criar_PessoaFisica_ThrowsException_ServerError()
         {
             var request = new PessoaFisicaRequest
             {
@@ -135,7 +135,36 @@ namespace CadastroPessoas.Tests.API.Controller
             var returnValue = Assert.IsAssignableFrom<IEnumerable<PessoaFisicaResponse>>(okResult.Value);
             Assert.Equal(3, returnValue.Count());
             Assert.Equal("Pessoa 20", returnValue.First().Nome);
+        }
 
+        [Fact]
+        public async Task Test_ListaPessoas_ThrowException_ServerError()
+        {
+            _mockService.Setup(s => s.ListAsync())
+                .ThrowsAsync(new Exception("Erro simulado"));
+
+            var result = await _controller.List();
+
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task Test_ObterPessoaViaCpf_Ok()
+        {
+            var cpf = "49633697883";
+            var endereco = new Endereco("04850280", "Pq. Cocaia", "Grajau", "São Paulo", "SP", "35", "casa verde");
+            var pessoa = new PessoaFisica("Gustavo Moreira", cpf, "F", endereco) { Id = 3 };
+
+            _mockService.Setup(s => s.GetByCpfAsync(cpf)).ReturnsAsync(pessoa);
+
+            var result = await _controller.GetByCpf(cpf);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnValue = Assert.IsType<PessoaFisicaResponse>(okResult.Value);
+            Assert.Equal(pessoa.Id, returnValue.Id);
+            Assert.Equal(pessoa.Nome, returnValue.Nome);
+            Assert.Equal(pessoa.CPF, returnValue.Documento);
         }
     }
 }
