@@ -3,15 +3,9 @@ using CadastroPessoas.API.Models.Requests;
 using CadastroPessoas.API.Models.Responses;
 using CadastroPessoas.Application.Interfaces;
 using CadastroPessoas.Domain.Entities;
-using Castle.Core.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CadastroPessoas.Tests.API.Controller
 {
@@ -165,6 +159,98 @@ namespace CadastroPessoas.Tests.API.Controller
             Assert.Equal(pessoa.Id, returnValue.Id);
             Assert.Equal(pessoa.Nome, returnValue.Nome);
             Assert.Equal(pessoa.CPF, returnValue.Documento);
+        }
+
+        [Fact]
+        public async Task Test_ObterPessoaViaCpf_NotFound()
+        {
+            var cpf = "12345678901";
+            _mockService.Setup(s => s.GetByCpfAsync(cpf)).ReturnsAsync((PessoaFisica)null);
+
+            var result = await _controller.GetByCpf(cpf);
+
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task Test_AtualizarPessoaViaCpf_Ok()
+        {
+            var cpf = "49633697883";
+            var request = new PessoaFisicaRequest
+            {
+                Nome = "Gustavo Santana",
+                CPF = "05723330",
+                Numero = "390",
+                Complemento = "AP 96B"
+            };
+
+            _mockService.Setup(s => s.UpdateByCpfAsync(
+                cpf, request.Nome, request.CPF, request.CEP, request.Numero, request.Complemento))
+                .Returns(Task.CompletedTask);
+
+            var result = await _controller.UpdateByCpf(cpf, request);
+
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task Test_AtualizarPessoaViaCpf_BadRequest()
+        {
+            var cpf = "49633697883";
+            _controller.ModelState.AddModelError("Nome", "Nome é obrigatório");
+            var request = new PessoaFisicaRequest();
+
+            var result = await _controller.UpdateByCpf(cpf, request);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Test_AtualizarPessoaViaCpf_ServerError()
+        {
+            var cpf = "49633697883";
+            var request = new PessoaFisicaRequest
+            {
+                Nome = "Gustavo M. Santana",
+                CPF = "49633697353",
+                CEP = "04850-280",
+                Numero = "35",
+                Complemento = "casa verde"
+            };
+
+            _mockService.Setup(s => s.UpdateByCpfAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Erro simulado"));
+
+            var result = await _controller.UpdateByCpf(cpf, request);
+
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task Test_ExcluirPessoaViaCpf_Ok()
+        {
+            var cpf = "49633697883";
+            _mockService.Setup(s => s.DeleteByCpfAsync(cpf)).Returns(Task.CompletedTask);
+
+            var result = await _controller.DeleteByCpf(cpf);
+
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task Test_ExcluirPessoaviaCpf_ServerError()
+        {
+            var cpf = "49633697883";
+            _mockService.Setup(s => s.DeleteByCpfAsync(cpf))
+                .ThrowsAsync(new Exception("Erro simulado"));
+
+            var result = await _controller.DeleteByCpf(cpf);
+
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
         }
     }
 }
