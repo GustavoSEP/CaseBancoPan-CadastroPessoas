@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CadastroPessoas.API.Models.Request
+namespace CadastroPessoas.API.Models.Requests
 {
     public class PessoaFisicaRequest
     {

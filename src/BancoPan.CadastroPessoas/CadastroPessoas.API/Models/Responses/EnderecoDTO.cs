@@ -1,4 +1,4 @@
-﻿namespace CadastroPessoas.API.Models.Response
+﻿namespace CadastroPessoas.API.Models.Responses
 {
     public class EnderecoDto
     {

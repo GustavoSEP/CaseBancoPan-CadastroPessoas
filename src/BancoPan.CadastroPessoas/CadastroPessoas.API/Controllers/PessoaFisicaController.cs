@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using CadastroPessoas.API.Models.Request;
-using CadastroPessoas.API.Models.Response;
+using CadastroPessoas.API.Models.Requests;
+using CadastroPessoas.API.Models.Responses;
 using CadastroPessoas.Application.Interfaces;
 using System;
 
