@@ -41,8 +41,8 @@ namespace CadastroPessoas.Tests.API.Controller
                 Complemento = "casa verde"
             };
 
-            var endereço = new Endereco("04850280", "Pq. Cocaia", "Grajau", "São Paulo", "SP", "35", "casa verde");
-            var pessoaFisica = new PessoaFisica("Gustavo M Santana", "49633697883", "F", endereço)
+            var endereco = new Endereco("04850280", "Pq. Cocaia", "Grajau", "São Paulo", "SP", "35", "casa verde");
+            var pessoaFisica = new PessoaFisica("Gustavo M Santana", "49633697883", "F", endereco)
             {
                 Id = 1
             };
@@ -72,6 +72,70 @@ namespace CadastroPessoas.Tests.API.Controller
             var result = await _controller.Create(request);
 
             Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Test_Create_PessoaFisica_ThrowsException_ServerError()
+        {
+            var request = new PessoaFisicaRequest
+            {
+                Nome = "Gustavo M. Santana",
+                CPF = "49633697883",
+                CEP = "04850-280",
+                Numero = "35",
+                Complemento = "casa verde"
+            };
+
+            _mockService.Setup(s => s.CreateAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Erro simulado"));
+
+            var result = await _controller.Create(request);
+
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task Test_ListaPessoasFisicas_Ok()
+        {
+            var endereco = new Endereco("04850280", "Pq. Cocaia", "Grajau", "São Paulo", "SP", "35", "casa verde");
+            var pessoas = new List<PessoaFisica>
+            {
+                new PessoaFisica("Gustavo Moreira", "49633697883", "F", endereco) {Id = 1},
+                new PessoaFisica("Laiane Moreira", "50380477858", "F", endereco) {Id = 2}
+            };
+
+            _mockService.Setup(s => s.ListAsync()).ReturnsAsync(pessoas);
+
+            var result = await _controller.List();
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnValue = Assert.IsAssignableFrom<IEnumerable<PessoaFisicaResponse>>(okResult.Value);
+            Assert.Equal(2, returnValue.Count());
+        }
+
+        [Fact]
+        public async Task Test_ListaPessoas_RetornoListaCorreta()
+        {
+            var endereco = new Endereco("04850280", "Pq. Cocaia", "Grajau", "São Paulo", "SP", "35", "casa verde");
+            var pessoas = new List<PessoaFisica>();
+
+            for (int i = 0; i < 25; i++)
+            {
+                pessoas.Add(new PessoaFisica($"Pessoa {i}", $"{i}12345678", "F", endereco) { Id = i++ });
+            }
+
+            _mockService.Setup(s => s.ListAsync()).ReturnsAsync(pessoas);
+
+            var result = await _controller.List(2, 10);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnValue = Assert.IsAssignableFrom<IEnumerable<PessoaFisicaResponse>>(okResult.Value);
+            Assert.Equal(3, returnValue.Count());
+            Assert.Equal("Pessoa 20", returnValue.First().Nome);
+
         }
     }
 }
