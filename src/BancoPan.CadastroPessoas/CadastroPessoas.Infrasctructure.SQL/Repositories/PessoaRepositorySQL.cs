@@ -13,6 +13,8 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
+
+        // PessoaFisica
         public async Task<PessoaFisica> AddPessoaFisicaAsync(PessoaFisica pessoa)
         {
             try
@@ -106,9 +108,8 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
                 throw new Exception("Erro ao deletar Pessoa Física: " + ex.Message, ex);
             }
         }
-        
-        // PessoaJuridica
 
+        // PessoaJuridica
         public async Task<PessoaJuridica> AddPessoaJuridicaAsync(PessoaJuridica pessoa)
         {
             try
@@ -119,9 +120,10 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao inserir Pessoa Jurídica no banco de dados: {ex.Message} ");
+                throw new Exception("Erro ao inserir Pessoa Jurídica no banco de dados: " + ex.Message, ex);
             }
         }
+
         public async Task<IEnumerable<PessoaJuridica>> ListPessoaJuridicaAsync()
         {
             try
@@ -130,9 +132,10 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao listar Pessoas Jurídicas: {ex.Message}");
+                throw new Exception("Erro ao listar Pessoas Jurídicas: " + ex.Message, ex);
             }
         }
+
         public async Task<PessoaJuridica?> GetPessoaJuridicaByIdAsync(int id)
         {
             try
@@ -144,17 +147,33 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
                 throw new Exception("Erro ao buscar Pessoa Jurídica por Id: " + ex.Message, ex);
             }
         }
+
         public async Task<PessoaJuridica?> GetPessoaJuridicaByCnpjAsync(string cnpj)
         {
             try
             {
-                return await _context.PessoasJuridicas.AsNoTracking().FirstOrDefaultAsync(p => p.CNPJ == cnpj);
+                return await _context.PessoasJuridicas.AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.CNPJ == cnpj);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao buscar Pessoa Jurídica por CNPJ: {ex.Message}");
+                throw new Exception("Erro ao buscar Pessoa Jurídica por CNPJ: " + ex.Message, ex);
             }
         }
+
+        public async Task<bool> ExistsPessoaJuridicaByCnpjAsync(string cnpj)
+        {
+            try
+            {
+                return await _context.PessoasJuridicas.AsNoTracking()
+                    .AnyAsync(p => p.CNPJ == cnpj);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao verificar existência de CNPJ: " + ex.Message, ex);
+            }
+        }
+
         public async Task UpdatePessoaJuridicaAsync(PessoaJuridica pessoa)
         {
             try
@@ -167,31 +186,21 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
                 throw new Exception("Erro ao atualizar Pessoa Jurídica: " + ex.Message, ex);
             }
         }
-        public async Task<bool> ExistsPessoaJuridicaByCnpjAsync(string cnpj)
-        {
-            try
-            {
-                return await _context.PessoasJuridicas.AsNoTracking().AnyAsync(p => p.CNPJ == cnpj);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Erro ao verificar existência de CNPJ: {ex.Message}");
-            }
-        }
+
         public async Task DeletePessoaJuridicaAsync(int id)
         {
             try
             {
-                var pessoa = await _context.PessoasJuridicas.FindAsync(id);
-                if (pessoa != null)
+                var p = await _context.PessoasJuridicas.FindAsync(id);
+                if (p != null)
                 {
-                    _context.PessoasJuridicas.Remove(pessoa);
+                    _context.PessoasJuridicas.Remove(p);
                     await _context.SaveChangesAsync();
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao deletar Pessoa Jurídica: {ex.Message}");
+                throw new Exception("Erro ao deletar Pessoa Jurídica: " + ex.Message, ex);
             }
         }
     }
