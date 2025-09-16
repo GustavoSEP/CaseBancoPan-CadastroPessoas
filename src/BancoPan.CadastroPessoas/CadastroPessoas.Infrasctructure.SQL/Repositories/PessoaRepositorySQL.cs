@@ -155,6 +155,18 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
                 throw new Exception($"Erro ao buscar Pessoa Jurídica por CNPJ: {ex.Message}");
             }
         }
+        public async Task UpdatePessoaJuridicaAsync(PessoaJuridica pessoa)
+        {
+            try
+            {
+                _context.PessoasJuridicas.Update(pessoa);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao atualizar Pessoa Jurídica: " + ex.Message, ex);
+            }
+        }
         public async Task<bool> ExistsPessoaJuridicaByCnpjAsync(string cnpj)
         {
             try

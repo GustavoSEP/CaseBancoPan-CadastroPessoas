@@ -10,6 +10,7 @@ namespace CadastroPessoas.Domain.Interfaces
     public interface IPessoaRepository
     {
 
+        // Pessoa Fisica
         Task<PessoaFisica> AddPessoaFisicaAsync(PessoaFisica pessoa);
         Task<IEnumerable<PessoaFisica>> ListPessoaFisicaAsync();
         Task<PessoaFisica?> GetPessoaFisicaByIdAsync(int id);
@@ -18,5 +19,13 @@ namespace CadastroPessoas.Domain.Interfaces
         Task UpdatePessoaFisicaAsync(PessoaFisica pessoa);
         Task DeletePessoaFisicaAsync(int id);
 
+        // Pessoa Juridica
+        Task<PessoaJuridica> AddPessoaJuridicaAsync(PessoaJuridica pessoa);
+        Task<IEnumerable<PessoaJuridica>> ListPessoaJuridicaAsync();
+        Task<PessoaJuridica?> GetPessoaJuridicaByIdAsync(int id);
+        Task<PessoaJuridica?> GetPessoaJuridicaByCnpjAsync(string cnpj);
+        Task<bool> ExistsPessoaJuridicaByCnpjAsync(string cnpj);
+        Task UpdatePessoaJuridicaAsync(PessoaJuridica pessoa);
+        Task DeletePessoaJuridicaAsync(int id);
     }
 }

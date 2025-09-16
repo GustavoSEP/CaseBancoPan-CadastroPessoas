@@ -1,6 +1,7 @@
 ﻿using CadastroPessoas.Application.Interfaces;
 using CadastroPessoas.Domain.Entities;
 using CadastroPessoas.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -38,6 +39,10 @@ namespace CadastroPessoas.Application.Services
                     complemento ?? string.Empty);
 
                 var pessoa = new PessoaJuridica(razaoSocial, nomeFantasia, cnpj, "J", endereco);
+
+                var created = await _pessoaRepository.AddPessoaJuridicaAsync(pessoa);
+
+                return created;
             }
             catch (Exception ex)
             {
@@ -116,7 +121,7 @@ namespace CadastroPessoas.Application.Services
                 PessoaJuridica? pessoa = await _pessoaRepository.GetPessoaJuridicaByCnpjAsync(cnpj); // Precisa criar este metodo.
 
                 if (pessoa == null)
-                    throw new EntityNotFoundException("Pessoa jurídica não encontrada.");
+                    throw new Exception("Pessoa jurídica não encontrada.");
 
                 await _pessoaRepository.DeletePessoaJuridicaAsync(pessoa.Id); // Precisa criar este metodo
             }
