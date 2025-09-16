@@ -9,12 +9,10 @@ namespace CadastroPessoas.Application.Interfaces
 {
     public interface IPessoaJuridicaService
     {
-        Task<PessoaJuridica> CreateAsync(string razaoSocial, string nomeFantasia, string cnpj, string cep, string numero, string complemento);
+        Task<PessoaJuridica> CreateAsync(string razaoSocial, string nomeFantasia, string cnpj, string? representanteLegal, string cep, string numero, string complemento);
         Task<IEnumerable<PessoaJuridica>> ListAsync();
         Task<PessoaJuridica?> GetByCnpjAsync(string cnpj);
-        Task UpdatePessoaByCnpjAsync(string cnpj, string? razaoSocial, string? nomeFantasia, 
-                        string? cnpjUpdate, string? cep, string? numero, string? complemento);
-        Task DeletePessoaByCnpjAsync(string cnpj);
-
+        Task UpdateByCnpjAsync(string cnpj, string? razaoSocial, string? nomeFantasia, string? cnpjRaw, string? representanteLegal, string? cep, string? numero, string? complemento);
+        Task DeleteByCnpjAsync(string cnpj);
     }
 }

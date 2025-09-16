@@ -11,9 +11,8 @@ namespace CadastroPessoas.Application.Interfaces
     {
         Task<PessoaFisica> CreateAsync(string nome, string cpf, string cep, string numero, string complemento);
         Task<IEnumerable<PessoaFisica>> ListAsync();
-        Task<PessoaFisica> GetPessoaByCpf(string cpf);
-        Task UpdatePessoaByCpfAsync(string cpf, string? nome, string? cpfNovo, string? cep,
-                                                           string? numero, string? complemento);
-        Task DeletePessoaByCpfAsync(string cpf);
+        Task<PessoaFisica?> GetByCpfAsync(string cpf);
+        Task UpdateByCpfAsync(string cpf, string? nome, string? cpfRaw, string? cep, string? numero, string? complemento);
+        Task DeleteByCpfAsync(string cpf);
     }
 }
