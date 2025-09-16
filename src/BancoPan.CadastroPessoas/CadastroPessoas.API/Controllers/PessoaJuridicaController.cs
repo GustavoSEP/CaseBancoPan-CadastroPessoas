@@ -7,20 +7,24 @@ namespace CadastroPessoas.API.Controllers
 {
     [ApiController]
     [Route("api/v1/pessoas/juridicas")]
-    public class PessoaJuridicaController : ControllerBase
+    public class PessoasJuridicasController : ControllerBase
     {
         private readonly IPessoaJuridicaService _service;
-        
-        public PessoaJuridicaController(IPessoaJuridicaService service)
+        private readonly ILogger<PessoasJuridicasController> _logger;
+
+        public PessoasJuridicasController(IPessoaJuridicaService service, ILogger<PessoasJuridicasController> logger)
         {
             _service = service;
+            _logger = logger;
         }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PessoaJuridicaRequest request)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             try
             {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
                 var pessoa = await _service.CreateAsync(
                     request.RazaoSocial,
                     request.NomeFantasia,
@@ -47,13 +51,16 @@ namespace CadastroPessoas.API.Controllers
                         Complemento = pessoa.Endereco.Complemento
                     }
                 };
+
                 return CreatedAtAction(nameof(GetByCnpj), new { cnpj = pessoa.CNPJ }, response);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro inesperado ao criar pessoa jurídica. Razão social: {RazaoSocial}, CNPJ: {Cnpj}", request?.RazaoSocial, request?.CNPJ);
                 return StatusCode(500, new { error = $"Erro ao cadastrar pessoa jurídica '{request?.RazaoSocial}': {ex.Message}" });
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> List([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
@@ -79,13 +86,16 @@ namespace CadastroPessoas.API.Controllers
                         Complemento = p.Endereco.Complemento
                     }
                 });
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro inesperado ao listar pessoas jurídicas");
                 return StatusCode(500, new { error = $"Erro ao listar pessoas jurídicas: {ex.Message}" });
             }
         }
+
         [HttpGet("{cnpj}")]
         public async Task<IActionResult> GetByCnpj([FromRoute] string cnpj)
         {
@@ -112,20 +122,23 @@ namespace CadastroPessoas.API.Controllers
                         Complemento = p.Endereco.Complemento
                     }
                 };
+
                 return Ok(response);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro inesperado ao obter pessoa jurídica por CNPJ: {Cnpj}", cnpj);
                 return StatusCode(500, new { error = $"Erro ao obter as informações do CNPJ: {cnpj}. Erro: {ex.Message}" });
             }
         }
+
         [HttpPut("{cnpj}")]
         public async Task<IActionResult> UpdateByCnpj([FromRoute] string cnpj, [FromBody] PessoaJuridicaRequest request)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             try
             {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
-
                 await _service.UpdateByCnpjAsync(
                     cnpj,
                     request.RazaoSocial,
@@ -139,9 +152,11 @@ namespace CadastroPessoas.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro inesperado ao atualizar pessoa jurídica. CNPJ alvo: {Cnpj}", cnpj);
                 return StatusCode(500, new { error = $"Erro ao atualizar a pessoa jurídica com CNPJ: {cnpj}. Erro: {ex.Message}" });
             }
         }
+
         [HttpDelete("{cnpj}")]
         public async Task<IActionResult> DeleteByCnpj([FromRoute] string cnpj)
         {
@@ -152,6 +167,7 @@ namespace CadastroPessoas.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro inesperado ao deletar pessoa jurídica por CNPJ: {Cnpj}", cnpj);
                 return StatusCode(500, new { error = $"Erro ao deletar pessoa com CNPJ: {cnpj}. Erro: {ex.Message}" });
             }
         }
