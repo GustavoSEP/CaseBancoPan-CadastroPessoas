@@ -20,7 +20,7 @@ namespace CadastroPessoas.Application.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<PessoaJuridica> CreateAsync(string razaoSocial, string nomeFantasia, string cnpjRaw, string? representanteLegal, string cep, string numero, string complemento)
+        public async Task<PessoaJuridica> CreateAsync(string razaoSocial, string nomeFantasia, string cnpjRaw, string cep, string numero, string complemento)
         {
             _logger.LogInformation("Criando Pessoa Jurídica. RazaoSocial: {RazaoSocial}, CNPJ(raw): {CnpjRaw}, CEP: {Cep}", razaoSocial, cnpjRaw, cep);
 
@@ -98,7 +98,7 @@ namespace CadastroPessoas.Application.Services
             }
         }
 
-        public async Task UpdateByCnpjAsync(string cnpj, string? razaoSocial, string? nomeFantasia, string? cnpjRaw, string? representanteLegal, string? cep, string? numero, string? complemento)
+        public async Task UpdateByCnpjAsync(string cnpj, string? razaoSocial, string? nomeFantasia, string? cnpjRaw, string? cep, string? numero, string? complemento)
         {
             _logger.LogInformation("Atualizando Pessoa Jurídica. CNPJ alvo: {Cnpj}", cnpj);
 

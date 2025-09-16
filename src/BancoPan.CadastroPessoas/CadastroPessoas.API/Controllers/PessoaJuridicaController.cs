@@ -126,7 +126,7 @@ namespace CadastroPessoas.API.Controllers
             {
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
-                await _service.UpdatePessoaByCnpjAsync(
+                await _service.UpdateByCnpjAsync(
                     cnpj,
                     request.RazaoSocial,
                     request.NomeFantasia,
@@ -147,7 +147,7 @@ namespace CadastroPessoas.API.Controllers
         {
             try
             {
-                await _service.DeletePessoaByCnpjAsync(cnpj);
+                await _service.DeleteByCnpjAsync(cnpj);
                 return NoContent();
             }
             catch (Exception ex)

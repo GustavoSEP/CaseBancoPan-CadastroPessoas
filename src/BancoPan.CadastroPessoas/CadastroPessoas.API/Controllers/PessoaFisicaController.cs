@@ -87,7 +87,7 @@ namespace CadastroPessoas.API.Controllers
         {
             try
             {
-                var pessoa = await _service.GetPessoaByCpf(cpf);
+                var pessoa = await _service.GetByCpfAsync(cpf);
                 if (pessoa == null) return NotFound(new { error = "Pessoa física não encontrada." });
                 var response = new PessoaFisicaResponse
                 {
@@ -120,7 +120,7 @@ namespace CadastroPessoas.API.Controllers
             try
             {
                 if (!ModelState.IsValid) return BadRequest(ModelState);
-                await _service.UpdatePessoaByCpfAsync(cpf, request.Nome, request.CPF, request.CEP, request.Numero, request.Complemento);
+                await _service.UpdateByCpfAsync(cpf, request.Nome, request.CPF, request.CEP, request.Numero, request.Complemento);
                 return NoContent();
             }
             catch (Exception ex)
@@ -133,7 +133,7 @@ namespace CadastroPessoas.API.Controllers
         {
             try
             {
-                await _service.DeletePessoaByCpfAsync(cpf);
+                await _service.DeleteByCpfAsync(cpf);
                 return NoContent();
             }
             catch (Exception ex)
