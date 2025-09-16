@@ -7,7 +7,7 @@ using CadastroPessoas.Domain.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace PessoaCadastro.Infrastructure.SQL.Services
+namespace CadastroPessoas.Infrastructure.SQL.Services
 {
     public class ViaCepService : IViaCepService
     {

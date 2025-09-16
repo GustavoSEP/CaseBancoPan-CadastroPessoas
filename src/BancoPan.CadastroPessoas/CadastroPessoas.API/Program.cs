@@ -18,6 +18,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<CadastroPessoas.Domain.Interfaces.IPessoaRepository, CadastroPessoas.Infrastructure.SQL.Repositories.PessoaRepositorySQL>();
 builder.Services.AddScoped<CadastroPessoas.Domain.Interfaces.IViaCepService, CadastroPessoas.Infrastructure.SQL.Services.ViaCepService>();
 builder.Services.AddScoped<CadastroPessoas.Application.Interfaces.IPessoaFisicaService, CadastroPessoas.Application.Services.PessoaFisicaService>();
+builder.Services.AddScoped<CadastroPessoas.Application.Interfaces.IPessoaJuridicaService, CadastroPessoas.Application.Services.PessoaJuridicaService>();
 
 // Register HttpClient for ViaCepService
 builder.Services.AddHttpClient();
