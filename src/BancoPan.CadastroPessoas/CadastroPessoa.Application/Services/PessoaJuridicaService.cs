@@ -73,9 +73,13 @@ namespace CadastroPessoas.Application.Services
         }
         public async Task UpdatePessoaByCnpjAsync(string cnpj, string? razaoSocial, string? nomeFantasia, string? cnpjUpdate, string? cep, string? numero, string? complemento)
         {
+            PessoaJuridica? pessoa = null;
             try
             {
-                PessoaJuridica? pessoa = await _pessoaRepository.GetPessoaJuridicaByCnpjAsync(cnpj); // Criar este metodo
+                pessoa = await _pessoaRepository.GetPessoaJuridicaByCnpjAsync(cnpj);
+                if (pessoa == null)
+                    throw new Exception("Pessoa jurídica não encontrada.");
+
                 if (!string.IsNullOrWhiteSpace(cep))
                 {
                     Endereco? enderecoViaCep = await _viaCepService.ConsultarEnderecoPorCepAsync(cep)
@@ -92,42 +96,41 @@ namespace CadastroPessoas.Application.Services
                     );
                     pessoa.AtualizarEndereco(novoEndereco);
                 }
-                else
+                else if (!string.IsNullOrWhiteSpace(numero) || !string.IsNullOrWhiteSpace(complemento))
                 {
-                    if (!string.IsNullOrWhiteSpace(numero) || !string.IsNullOrWhiteSpace(complemento))
-                    {
-                        pessoa.AtualizarNumeroComplemento(numero ?? string.Empty, complemento ?? string.Empty);
-                    }
+                    pessoa.AtualizarNumeroComplemento(numero ?? string.Empty, complemento ?? string.Empty);
                 }
 
                 var novoRazao = !string.IsNullOrWhiteSpace(razaoSocial) ? razaoSocial : pessoa.RazaoSocial;
                 var novoNomeFantasia = !string.IsNullOrWhiteSpace(nomeFantasia) ? nomeFantasia : pessoa.NomeFantasia;
 
                 pessoa.AtualizarDados(novoRazao, novoNomeFantasia, pessoa.CNPJ, pessoa.TipoPessoa);
-                await _pessoaRepository.UpdatePessoaJuridicaAsync(pessoa); // Criar este metodo 
+                await _pessoaRepository.UpdatePessoaJuridicaAsync(pessoa);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao atualizar Pessoa Jurídica. Id: {pessoa.Id}");
+                throw new Exception($"Erro ao atualizar Pessoa Jurídica. Id: {pessoa?.Id}. Detalhes: {ex.Message}");
             }
         }
+
         public async Task DeletePessoaByCnpjAsync(string cnpj)
         {
+            PessoaJuridica? pessoa = null;
             try
             {
                 if (string.IsNullOrWhiteSpace(cnpj))
                     throw new ValidationException("CNPJ é obrigatório para exclusão.");
 
-                PessoaJuridica? pessoa = await _pessoaRepository.GetPessoaJuridicaByCnpjAsync(cnpj); // Precisa criar este metodo.
+                pessoa = await _pessoaRepository.GetPessoaJuridicaByCnpjAsync(cnpj);
 
                 if (pessoa == null)
                     throw new Exception("Pessoa jurídica não encontrada.");
 
-                await _pessoaRepository.DeletePessoaJuridicaAsync(pessoa.Id); // Precisa criar este metodo
+                await _pessoaRepository.DeletePessoaJuridicaAsync(pessoa.Id);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Erro ao deletar Pessoa Jurídica. Id: {pessoa.Id}");
+                throw new Exception($"Erro ao deletar Pessoa Jurídica. Id: {pessoa?.Id}. Detalhes: {ex.Message}");
             }
         }
     }
