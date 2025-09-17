@@ -163,6 +163,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
             Assert.Null(pessoaExcluida);
         }
 
+        [Fact]
         private async Task Test_AdicionarPessoaFisica_Ok()
         {
             var endereco = new Endereco("05723330", "Rua Afonso Vidal", "Vila Andrade", "São Paulo", "SP", "390", "AP 96B");
@@ -175,6 +176,150 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
             };
 
             await _context.PessoasFisicas.AddRangeAsync(pessoas);
+            await _context.SaveChangesAsync();
+        }
+
+        [Fact]
+        public async Task AddPessoaJuridicaAsync_DeveAdicionarPessoaJuridica()
+        {
+            var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
+            var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
+
+            var resultado = await _repository.AddPessoaJuridicaAsync(pessoa);
+
+            Assert.NotEqual(0, resultado.Id);
+            Assert.Equal("BANCO PAN S/A.", resultado.RazaoSocial);
+            Assert.Equal("Banco Pan", resultado.NomeFantasia);
+            Assert.Equal("59.285.411/0001-13", resultado.CNPJ);
+
+            var pessoaNoDb = await _context.PessoasJuridicas.FindAsync(resultado.Id);
+            Assert.NotNull(pessoaNoDb);
+            Assert.Equal("BANCO PAN S/A.", pessoaNoDb.RazaoSocial);
+        }
+
+        [Fact]
+        public async Task ListPessoaJuridicaAsync_DeveRetornarTodasPessoasJuridicas()
+        {
+            await AdicionarPessoasJuridicasTeste();
+
+            var resultado = await _repository.ListPessoaJuridicaAsync();
+
+            Assert.Equal(3, resultado.Count());
+        }
+
+        [Fact]
+        public async Task GetPessoaJuridicaByIdAsync_ComIdExistente_DeveRetornarPessoa()
+        {
+            var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
+            var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
+            await _context.PessoasJuridicas.AddAsync(pessoa);
+            await _context.SaveChangesAsync();
+
+            var resultado = await _repository.GetPessoaJuridicaByIdAsync(pessoa.Id);
+
+            Assert.NotNull(resultado);
+            Assert.Equal(pessoa.Id, resultado.Id);
+            Assert.Equal("BANCO PAN S/A.", resultado.RazaoSocial);
+        }
+
+        [Fact]
+        public async Task GetPessoaJuridicaByIdAsync_ComIdInexistente_DeveRetornarNull()
+        {
+            var resultado = await _repository.GetPessoaJuridicaByIdAsync(999);
+
+            Assert.Null(resultado);
+        }
+
+        [Fact]
+        public async Task GetPessoaJuridicaByCnpjAsync_ComCnpjExistente_DeveRetornarPessoa()
+        {
+            var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
+            var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
+            await _context.PessoasJuridicas.AddAsync(pessoa);
+            await _context.SaveChangesAsync();
+
+            var resultado = await _repository.GetPessoaJuridicaByCnpjAsync("59.285.411/0001-13");
+
+            Assert.NotNull(resultado);
+            Assert.Equal("BANCO PAN S/A.", resultado.RazaoSocial);
+            Assert.Equal("59.285.411/0001-13", resultado.CNPJ);
+        }
+
+        [Fact]
+        public async Task GetPessoaJuridicaByCnpjAsync_ComCnpjInexistente_DeveRetornarNull()
+        {
+            var resultado = await _repository.GetPessoaJuridicaByCnpjAsync("11.111.111/1111-11");
+
+            Assert.Null(resultado);
+        }
+
+        [Fact]
+        public async Task ExistsPessoaJuridicaByCnpjAsync_ComCnpjExistente_DeveRetornarTrue()
+        {
+            var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
+            var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
+            await _context.PessoasJuridicas.AddAsync(pessoa);
+            await _context.SaveChangesAsync();
+
+            var resultado = await _repository.ExistsPessoaJuridicaByCnpjAsync("59.285.411/0001-13");
+
+            Assert.True(resultado);
+        }
+
+        [Fact]
+        public async Task ExistsPessoaJuridicaByCnpjAsync_ComCnpjInexistente_DeveRetornarFalse()
+        {
+            var resultado = await _repository.ExistsPessoaJuridicaByCnpjAsync("11.111.111/1111-11");
+
+            Assert.False(resultado);
+        }
+
+        [Fact]
+        public async Task UpdatePessoaJuridicaAsync_DeveAtualizarPessoaJuridica()
+        {
+            var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
+            var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
+            await _context.PessoasJuridicas.AddAsync(pessoa);
+            await _context.SaveChangesAsync();
+
+            pessoa.AtualizarDados("Banco Panamericano", "Panamericano", pessoa.CNPJ, pessoa.TipoPessoa);
+
+            await _repository.UpdatePessoaJuridicaAsync(pessoa);
+
+            var pessoaAtualizada = await _context.PessoasJuridicas.FindAsync(pessoa.Id);
+            Assert.NotNull(pessoaAtualizada);
+            Assert.Equal("Banco Panamericano", pessoaAtualizada.RazaoSocial);
+            Assert.Equal("Panamericano", pessoaAtualizada.NomeFantasia);
+        }
+
+        [Fact]
+        public async Task DeletePessoaJuridicaAsync_DeveExcluirPessoaJuridica()
+        {
+            var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
+            var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
+            await _context.PessoasJuridicas.AddAsync(pessoa);
+            await _context.SaveChangesAsync();
+
+            var id = pessoa.Id;
+
+            await _repository.DeletePessoaJuridicaAsync(id);
+
+            var pessoaExcluida = await _context.PessoasJuridicas.FindAsync(id);
+            Assert.Null(pessoaExcluida);
+        }
+
+        private async Task AdicionarPessoasJuridicasTeste()
+        {
+            var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
+
+            var pessoas = new List<PessoaJuridica>
+            {
+                new PessoaJuridica("BANCO PAN S/A", "Banco Pan", "59.285.411/0001-13", "J", endereco),
+                new PessoaJuridica("BTG Pactual S/A", "BTG PACTUAL", "30.306.294/0001-45", "J", endereco),
+                new PessoaJuridica("MOBIAUTO LTDA.", "MobiAuto", "32.158.029/0001-92", "J", endereco)
+            };
+
+            await _context.PessoasJuridicas.AddRangeAsync(pessoas);
             await _context.SaveChangesAsync();
         }
 
