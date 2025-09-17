@@ -163,7 +163,6 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
             Assert.Null(pessoaExcluida);
         }
 
-        [Fact]
         private async Task Test_AdicionarPessoaFisica_Ok()
         {
             var endereco = new Endereco("05723330", "Rua Afonso Vidal", "Vila Andrade", "São Paulo", "SP", "390", "AP 96B");
@@ -180,7 +179,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task AddPessoaJuridicaAsync_DeveAdicionarPessoaJuridica()
+        public async Task Test_AdicionarPessoaJuridicaRepository_Ok()
         {
             var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
             var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
@@ -198,9 +197,9 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task ListPessoaJuridicaAsync_DeveRetornarTodasPessoasJuridicas()
+        public async Task Test_RetornaListaDeTodasAsPessoasJuridicas_Ok()
         {
-            await AdicionarPessoasJuridicasTeste();
+            await Test_AdicionarPessoasJuridicasTeste();
 
             var resultado = await _repository.ListPessoaJuridicaAsync();
 
@@ -208,7 +207,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task GetPessoaJuridicaByIdAsync_ComIdExistente_DeveRetornarPessoa()
+        public async Task Test_ObterPessoaJuridicaAtravesDoID_Ok()
         {
             var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
             var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
@@ -223,7 +222,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task GetPessoaJuridicaByIdAsync_ComIdInexistente_DeveRetornarNull()
+        public async Task Test_ObterPessoaJuridicaAtravesDeIdInexistente_ExceptionError()
         {
             var resultado = await _repository.GetPessoaJuridicaByIdAsync(999);
 
@@ -231,7 +230,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task GetPessoaJuridicaByCnpjAsync_ComCnpjExistente_DeveRetornarPessoa()
+        public async Task Test_ObterPessoaJuridicaAtravesDCnpj_Ok()
         {
             var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
             var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
@@ -246,7 +245,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task GetPessoaJuridicaByCnpjAsync_ComCnpjInexistente_DeveRetornarNull()
+        public async Task Test_ObterPessoaJuridicaAtravesDeCnpjInexistente_ExceptionError()
         {
             var resultado = await _repository.GetPessoaJuridicaByCnpjAsync("11.111.111/1111-11");
 
@@ -254,7 +253,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task ExistsPessoaJuridicaByCnpjAsync_ComCnpjExistente_DeveRetornarTrue()
+        public async Task Test_ValidarSeExistePessoJuridica_Ok()
         {
             var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
             var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
@@ -267,7 +266,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task ExistsPessoaJuridicaByCnpjAsync_ComCnpjInexistente_DeveRetornarFalse()
+        public async Task Test_ValidarSeExistePessoaJuridicaComCNPJInexistente_ExceptionError()
         {
             var resultado = await _repository.ExistsPessoaJuridicaByCnpjAsync("11.111.111/1111-11");
 
@@ -275,7 +274,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task UpdatePessoaJuridicaAsync_DeveAtualizarPessoaJuridica()
+        public async Task Test_AtualizarPessoJuridica_Ok()
         {
             var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
             var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
@@ -293,7 +292,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
         }
 
         [Fact]
-        public async Task DeletePessoaJuridicaAsync_DeveExcluirPessoaJuridica()
+        public async Task Test_ExcluirPessoaJuridica_Ok()
         {
             var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
             var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59.285.411/0001-13", "J", endereco);
@@ -308,7 +307,7 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
             Assert.Null(pessoaExcluida);
         }
 
-        private async Task AdicionarPessoasJuridicasTeste()
+        private async Task Test_AdicionarPessoasJuridicasTeste()
         {
             var endereco = new Endereco("01310100", "Av. Paulista", "Bela Vista", "São Paulo", "SP", "1374", "10 Andar");
 
@@ -322,7 +321,5 @@ namespace CadastroPessoas.Tests.Infrastructure.Repositories
             await _context.PessoasJuridicas.AddRangeAsync(pessoas);
             await _context.SaveChangesAsync();
         }
-
-
     }
 }

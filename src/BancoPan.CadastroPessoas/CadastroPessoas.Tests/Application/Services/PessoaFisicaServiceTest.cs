@@ -215,7 +215,7 @@ namespace CadastroPessoas.Tests.Application.Services
         }
 
         [Fact]
-        public async Task UpdateByCpfAsync_ComCepValido_DeveAtualizarEndereco()
+        public async Task Test_AtualizarCepValido_Ok()
         {
             var pessoa = CriarPessoaFisicaMock();
             var novoEndereco = new Endereco(
