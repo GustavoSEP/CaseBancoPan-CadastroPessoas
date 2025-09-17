@@ -217,7 +217,6 @@ namespace CadastroPessoas.Tests.Application.Services
         [Fact]
         public async Task UpdateByCpfAsync_ComCepValido_DeveAtualizarEndereco()
         {
-            // Arrange
             var pessoa = CriarPessoaFisicaMock();
             var novoEndereco = new Endereco(
                 "04850280",
@@ -235,10 +234,8 @@ namespace CadastroPessoas.Tests.Application.Services
             _mockViaCepService.Setup(s => s.ConsultarEnderecoPorCepAsync("04850280"))
                 .ReturnsAsync(novoEndereco);
 
-            // Act
             await _service.UpdateByCpfAsync(CPF_VALIDO, null, null, "04850280", "110", "Fundos");
 
-            // Assert
             _mockRepository.Verify(r => r.UpdatePessoaFisicaAsync(It.Is<PessoaFisica>(p =>
                 p.Id == pessoa.Id &&
                 p.Endereco.Cep == "04850280" &&
