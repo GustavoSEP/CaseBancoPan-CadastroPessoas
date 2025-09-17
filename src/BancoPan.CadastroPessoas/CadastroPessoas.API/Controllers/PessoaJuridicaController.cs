@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CadastroPessoas.API.Controllers
 {
+    /// <summary>
+    /// API para gerenciamento de pessoas jurídicas no sistema de cadastro.
+    /// Fornece endpoints para criar, listar, consultar, atualizar e excluir pessoas jurídicas.
+    /// </summary>
     [ApiController]
     [Route("api/v1/pessoas/juridicas")]
     public class PessoaJuridicaController : ControllerBase
@@ -12,12 +16,39 @@ namespace CadastroPessoas.API.Controllers
         private readonly IPessoaJuridicaService _service;
         private readonly ILogger<PessoaJuridicaController> _logger;
 
+        /// <summary>
+        /// Inicializa uma nova instância do controlador de pessoas jurídicas.
+        /// </summary>
+        /// <param name="service">Service de pessoa Juridica que realiza as ações programadas para pessoa fisica.</param>
+        /// <param name="logger">Logger para registro de atividades e erros. Utilizado para observabilidade do código.</param>
         public PessoaJuridicaController(IPessoaJuridicaService service, ILogger<PessoaJuridicaController> logger)
         {
             _service = service;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Cria uma nova pessoa jurídica no sistema.
+        /// </summary>
+        /// <param name="request">Dados da pessoa jurídica a ser criada.</param>
+        /// <returns>
+        /// 201 (Created) com os dados da pessoa jurídica criada e um link para consulta.
+        /// 400 (Bad Request) caso os dados de entrada sejam inválidos.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// POST /api/v1/pessoas/juridicas
+        /// {
+        ///     "razaoSocial": "Empresa ABC Ltda",
+        ///     "nomeFantasia": "ABC Sistemas",
+        ///     "cnpj": "12345678000190",
+        ///     "cep": "01001000",
+        ///     "numero": "123",
+        ///     "complemento": "Sala 45"
+        /// }
+        /// </remarks>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PessoaJuridicaRequest request)
         {
@@ -61,6 +92,20 @@ namespace CadastroPessoas.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Lista todas as pessoas jurídicas com suporte a paginação.
+        /// </summary>
+        /// <param name="page">Número da página, iniciando em 1. Valor padrão: 1.</param>
+        /// <param name="pageSize">Quantidade de itens por página. Valor padrão: 20.</param>
+        /// <returns>
+        /// 200 (OK) com a lista de pessoas jurídicas.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// GET /api/v1/pessoas/juridicas?page=1&amp;pageSize=10
+        /// </remarks>
         [HttpGet]
         public async Task<IActionResult> List([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
@@ -96,6 +141,20 @@ namespace CadastroPessoas.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Obtém os dados de uma pessoa jurídica pelo CNPJ.
+        /// </summary>
+        /// <param name="cnpj">CNPJ da pessoa jurídica a ser consultada.</param>
+        /// <returns>
+        /// 200 (OK) com os dados da pessoa jurídica.
+        /// 404 (Not Found) se a pessoa jurídica não for encontrada.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// GET /api/v1/pessoas/juridicas/12345678000190
+        /// </remarks>
         [HttpGet("{cnpj}")]
         public async Task<IActionResult> GetByCnpj([FromRoute] string cnpj)
         {
@@ -132,6 +191,29 @@ namespace CadastroPessoas.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Atualiza os dados de uma pessoa jurídica pelo CNPJ.
+        /// </summary>
+        /// <param name="cnpj">CNPJ da pessoa jurídica a ser atualizada.</param>
+        /// <param name="request">Novos dados da pessoa jurídica.</param>
+        /// <returns>
+        /// 204 (No Content) se a atualização for bem-sucedida.
+        /// 400 (Bad Request) caso os dados de entrada sejam inválidos.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// PUT /api/v1/pessoas/juridicas/12345678000190
+        /// {
+        ///     "razaoSocial": "Empresa ABC Atualizada Ltda",
+        ///     "nomeFantasia": "ABC Sistemas",
+        ///     "cnpj": "12345678000190",
+        ///     "cep": "01001000",
+        ///     "numero": "456",
+        ///     "complemento": "Andar 10"
+        /// }
+        /// </remarks>
         [HttpPut("{cnpj}")]
         public async Task<IActionResult> UpdateByCnpj([FromRoute] string cnpj, [FromBody] PessoaJuridicaRequest request)
         {
@@ -157,6 +239,19 @@ namespace CadastroPessoas.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Exclui uma pessoa jurídica pelo CNPJ.
+        /// </summary>
+        /// <param name="cnpj">CNPJ da pessoa jurídica a ser excluída.</param>
+        /// <returns>
+        /// 204 (No Content) se a exclusão for bem-sucedida.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// DELETE /api/v1/pessoas/juridicas/12345678000190
+        /// </remarks>
         [HttpDelete("{cnpj}")]
         public async Task<IActionResult> DeleteByCnpj([FromRoute] string cnpj)
         {

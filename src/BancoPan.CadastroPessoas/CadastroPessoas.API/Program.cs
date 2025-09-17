@@ -8,11 +8,35 @@ using CadastroPessoas.Infrastructure.SQL.Services;
 using Polly;
 using Polly.Extensions.Http;
 using System.Net.Http;
+using System.Reflection;
+using System.IO;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Configurar o Swagger para incluir a documentação XML
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Cadastro de Pessoas",
+        Version = "v1",
+        Description = "API de cadastro de pessoas físicas e jurídicas para desafio técnico do Banco Pan.",
+        Contact = new OpenApiContact
+        {
+            Name = "Gustavo Moreira Santana",
+            Email = "gustamoreira26@gmail.com",
+            Url = new Uri("https://github.com/gustavoSEP"),
+        }
+    });
+
+    // Configurar o Swagger para usar o arquivo XML de documentação
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    options.IncludeXmlComments(xmlPath);
+});
 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -61,7 +85,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API de Cadastro de Pessoas v1");
+        c.RoutePrefix = string.Empty; 
+    });
 }
 
 app.UseHttpsRedirection();

@@ -9,6 +9,10 @@ using System;
 
 namespace CadastroPessoas.API.Controllers
 {
+    /// <summary>
+    /// API para gerenciamento de pessoas físicas no sistema de cadastro
+    /// Fornece endpoints para criar, listar, consultar, atualizar e excluir pessoas físicas.
+    /// </summary>
     [ApiController]
     [Route("api/v1/pessoas/fisicas")]
     public class PessoaFisicaController : ControllerBase
@@ -16,12 +20,38 @@ namespace CadastroPessoas.API.Controllers
         private readonly IPessoaFisicaService _service;
         private readonly ILogger<PessoaFisicaController> _logger;
 
+        /// <summary>
+        /// Inicializa uma nova instância do controlador de pessoas físicas.
+        /// </summary>
+        /// <param name="service">Service de pessoa fisica, que realiza as ações programadas para pessoa fisica.</param>
+        /// <param name="logger">Logger para registro de atividades e erros. Utilizado para observabilidade do código.</param>
         public PessoaFisicaController(IPessoaFisicaService service, ILogger<PessoaFisicaController> logger)
         {
             _service = service;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Cria uma nova pessoa fisica.
+        /// </summary>
+        /// <param name="request">Dados da pessoa física a ser criada.</param>
+        /// <returns>
+        /// 201 (Created) Retorna os dados da pessoa fisica criada com as informações de endereço.
+        /// 400 (Bad Request) caso os dados de entrada sejam inválidos.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// POST /api/v1/pessoas/fisicas
+        /// {
+        ///     "nome": "João Silva",
+        ///     "cpf": "12345678901",
+        ///     "cep": "01001000",
+        ///     "numero": "123",
+        ///     "complemento": "Apto 45"
+        /// }
+        /// </remarks>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PessoaFisicaRequest request)
         {
@@ -56,6 +86,20 @@ namespace CadastroPessoas.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Lista todas as pessoas físicas com suporte a paginação.
+        /// </summary>
+        /// <param name="page">Número da página, iniciando em 1. Valor padrão: 1.</param>
+        /// <param name="pageSize">Quantidade de itens por página. Valor padrão: 20.</param>
+        /// <returns>
+        /// 200 (OK) com a lista de pessoas físicas.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// GET /api/v1/pessoas/fisicas?page=1&amp;pageSize=10
+        /// </remarks>
         [HttpGet]
         public async Task<IActionResult> List([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
@@ -89,6 +133,20 @@ namespace CadastroPessoas.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Obtém os dados de uma pessoa física pelo CPF.
+        /// </summary>
+        /// <param name="cpf">CPF da pessoa física a ser consultada.</param>
+        /// <returns>
+        /// 200 (OK) com os dados da pessoa física.
+        /// 404 (Not Found) se a pessoa física não for encontrada.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// GET /api/v1/pessoas/fisicas/12345678901
+        /// </remarks>
         [HttpGet("{cpf}")]
         public async Task<IActionResult> GetByCpf([FromRoute] string cpf)
         {
@@ -122,6 +180,28 @@ namespace CadastroPessoas.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Atualiza os dados de uma pessoa física pelo CPF.
+        /// </summary>
+        /// <param name="cpf">CPF da pessoa física a ser atualizada.</param>
+        /// <param name="request">Novos dados da pessoa física.</param>
+        /// <returns>
+        /// 204 (No Content) se a atualização for bem-sucedida.
+        /// 400 (Bad Request) caso os dados de entrada sejam inválidos.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// PUT /api/v1/pessoas/fisicas/12345678901
+        /// {
+        ///     "nome": "João Silva Atualizado",
+        ///     "cpf": "12345678901",
+        ///     "cep": "01001000",
+        ///     "numero": "456",
+        ///     "complemento": "Sala 789"
+        /// }
+        /// </remarks>
         [HttpPut("{cpf}")]
         public async Task<IActionResult> UpdateByCpf([FromRoute] string cpf, [FromBody] PessoaFisicaRequest request)
         {
@@ -138,7 +218,19 @@ namespace CadastroPessoas.API.Controllers
                 return StatusCode(500, new { error = $"Erro ao atualizar pessoa com CPF: {cpf}. Erro: {ex.Message}" });
             }
         }
-
+        /// <summary>
+        /// Exclui uma pessoa física pelo CPF.
+        /// </summary>
+        /// <param name="cpf">CPF da pessoa física a ser excluída.</param>
+        /// <returns>
+        /// 204 (No Content) se a exclusão for bem-sucedida.
+        /// 500 (Internal Server Error) em caso de erro no processamento.
+        /// </returns>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        /// DELETE /api/v1/pessoas/fisicas/12345678901
+        /// </remarks>
         [HttpDelete("{cpf}")]
         public async Task<IActionResult> DeleteByCpf([FromRoute] string cpf)
         {
