@@ -2,6 +2,7 @@
 using CadastroPessoas.Application.Interfaces;
 using CadastroPessoas.Domain.Entities;
 using CadastroPessoas.Domain.Interfaces;
+using CadastroPessoas.Ports.Output.Repositories;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
 
@@ -45,7 +46,8 @@ namespace CadastroPessoas.Application.Services
                 complemento ?? string.Empty
             );
 
-            var pessoa = new PessoaFisica(nome, cpfFormatted, "F", endereco);
+            // Corrigido construtor PessoaFisica
+            var pessoa = new PessoaFisica(0, nome, cpfFormatted, "F", endereco);
 
             try
             {
@@ -65,7 +67,7 @@ namespace CadastroPessoas.Application.Services
             _logger.LogInformation("Listando Pessoas Físicas.");
             try
             {
-                return _pessoaRepository.ListPessoaFisicaAsync();
+                return _pessoaRepository.ListPessoaFisicaAsync(); 
             }
             catch (Exception ex)
             {
@@ -81,7 +83,8 @@ namespace CadastroPessoas.Application.Services
             if (string.IsNullOrWhiteSpace(cpf))
                 throw new ValidationException("CPF é obrigatório.");
 
-            var digits = DocumentoHelper.NormalizeDigits(cpf);
+            // Substituindo o método NormalizeDigits
+            var digits = cpf.Replace(".", "").Replace("-", "").Trim();
             if (digits.Length != 11)
                 throw new ValidationException("CPF inválido.");
 
@@ -105,14 +108,15 @@ namespace CadastroPessoas.Application.Services
             if (string.IsNullOrWhiteSpace(cpf))
                 throw new ValidationException("CPF é obrigatório para atualização.");
 
-            var digits = DocumentoHelper.NormalizeDigits(cpf);
+            // Substituindo o método NormalizeDigits
+            var digits = cpf.Replace(".", "").Replace("-", "").Trim();
             if (digits.Length != 11) throw new ValidationException("CPF inválido.");
 
             var formatted = DocumentoHelper.FormatCpf(digits);
 
-            PessoaFisica? pessoa = await _pessoaRepository.GetPessoaFisicaByCpfAsync(formatted);
+            PessoaFisica? pessoaExistente = await _pessoaRepository.GetPessoaFisicaByCpfAsync(formatted);
 
-            if (pessoa == null)
+            if (pessoaExistente == null)
                 throw new Exception("Pessoa física não encontrada.");
 
             if (!string.IsNullOrWhiteSpace(cpfRaw))
@@ -121,46 +125,58 @@ namespace CadastroPessoas.Application.Services
                     throw new ValidationException("CPF inválido.");
 
                 var cpfFormatted = DocumentoHelper.FormatCpf(cpfRaw);
-                if (!string.Equals(cpfFormatted, pessoa.CPF, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(cpfFormatted, pessoaExistente.CPF, StringComparison.OrdinalIgnoreCase))
                     throw new Exception("Não é permitido alterar o CPF (documento).");
             }
 
+            // Criar o novo endereço
+            Endereco novoEndereco;
             if (!string.IsNullOrWhiteSpace(cep))
             {
                 Endereco? enderecoViaCep = await _viaCepService.ConsultarEnderecoPorCepAsync(cep)
                                                 ?? throw new ValidationException("Endereço não encontrado para o CEP informado.");
 
-                var novoEndereco = new Endereco(
+                novoEndereco = new Endereco(
                     enderecoViaCep.Cep,
                     enderecoViaCep.Logradouro,
                     enderecoViaCep.Bairro,
                     enderecoViaCep.Cidade,
                     enderecoViaCep.Estado,
-                    numero ?? pessoa.Endereco.Numero,
-                    complemento ?? pessoa.Endereco.Complemento
+                    numero ?? pessoaExistente.Endereco.Numero,
+                    complemento ?? pessoaExistente.Endereco.Complemento
                 );
-
-                pessoa.AtualizarEndereco(novoEndereco);
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(numero) || !string.IsNullOrWhiteSpace(complemento))
-                {
-                    pessoa.AtualizarNumeroComplemento(numero ?? string.Empty, complemento ?? string.Empty);
-                }
+                // Manter o endereço atual, atualizando apenas número e complemento se fornecidos
+                novoEndereco = new Endereco(
+                    pessoaExistente.Endereco.Cep,
+                    pessoaExistente.Endereco.Logradouro,
+                    pessoaExistente.Endereco.Bairro,
+                    pessoaExistente.Endereco.Cidade,
+                    pessoaExistente.Endereco.Estado,
+                    !string.IsNullOrWhiteSpace(numero) ? numero : pessoaExistente.Endereco.Numero,
+                    !string.IsNullOrWhiteSpace(complemento) ? complemento : pessoaExistente.Endereco.Complemento
+                );
             }
 
-            var novoNome = !string.IsNullOrWhiteSpace(nome) ? nome : pessoa.Nome;
-            pessoa.AtualizarDados(novoNome, pessoa.CPF, pessoa.TipoPessoa);
+            // Criar uma nova PessoaFisica com os dados atualizados
+            var pessoaAtualizada = new PessoaFisica(
+                pessoaExistente.Id,
+                !string.IsNullOrWhiteSpace(nome) ? nome : pessoaExistente.Nome,
+                pessoaExistente.CPF,
+                pessoaExistente.Tipo,
+                novoEndereco
+            );
 
             try
             {
-                await _pessoaRepository.UpdatePessoaFisicaAsync(pessoa);
-                _logger.LogInformation("Pessoa Física atualizada. Id: {Id}", pessoa.Id);
+                await _pessoaRepository.UpdatePessoaFisicaAsync(pessoaAtualizada);
+                _logger.LogInformation("Pessoa Física atualizada. Id: {Id}", pessoaAtualizada.Id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao atualizar Pessoa Física. Id: {Id}", pessoa.Id);
+                _logger.LogError(ex, "Erro ao atualizar Pessoa Física. Id: {Id}", pessoaAtualizada.Id);
                 throw;
             }
         }
@@ -172,7 +188,8 @@ namespace CadastroPessoas.Application.Services
             if (string.IsNullOrWhiteSpace(cpf))
                 throw new ValidationException("CPF é obrigatório para exclusão.");
 
-            var digits = DocumentoHelper.NormalizeDigits(cpf);
+            // Substituindo o método NormalizeDigits
+            var digits = cpf.Replace(".", "").Replace("-", "").Trim();
             if (digits.Length != 11) throw new ValidationException("CPF inválido.");
 
             var formatted = DocumentoHelper.FormatCpf(digits);

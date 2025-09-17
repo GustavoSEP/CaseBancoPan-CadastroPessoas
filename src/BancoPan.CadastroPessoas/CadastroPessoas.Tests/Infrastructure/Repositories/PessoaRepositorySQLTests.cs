@@ -1,5 +1,5 @@
 ﻿using CadastroPessoas.Domain.Entities;
-using CadastroPessoas.Infrastructure.SQL.Data;
+using CadastroPessoas.Adapters.Output.SQL.Data;
 using CadastroPessoas.Infrastructure.SQL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;

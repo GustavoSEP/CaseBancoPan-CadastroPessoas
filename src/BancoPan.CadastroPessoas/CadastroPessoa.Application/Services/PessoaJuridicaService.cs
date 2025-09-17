@@ -3,7 +3,11 @@ using CadastroPessoas.Application.Helpers;
 using CadastroPessoas.Application.Interfaces;
 using CadastroPessoas.Domain.Entities;
 using CadastroPessoas.Domain.Interfaces;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
+using CadastroPessoas.Ports.Output.Repositories;
 
 namespace CadastroPessoas.Application.Services
 {
@@ -45,7 +49,8 @@ namespace CadastroPessoas.Application.Services
                 complemento ?? string.Empty
             );
 
-            var pessoa = new PessoaJuridica(razaoSocial, nomeFantasia, cnpjFormatted, "J", endereco);
+            // Corrigido construtor PessoaJuridica
+            var pessoa = new PessoaJuridica(0, razaoSocial, nomeFantasia, cnpjFormatted, "J", endereco);
 
             try
             {
@@ -81,7 +86,8 @@ namespace CadastroPessoas.Application.Services
             if (string.IsNullOrWhiteSpace(cnpj))
                 throw new ValidationException("CNPJ é obrigatório.");
 
-            var digits = DocumentoHelper.NormalizeDigits(cnpj);
+            // Substituindo o método NormalizeDigits
+            var digits = cnpj.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
             if (digits.Length != 14)
                 throw new ValidationException("CNPJ inválido.");
 
@@ -105,14 +111,15 @@ namespace CadastroPessoas.Application.Services
             if (string.IsNullOrWhiteSpace(cnpj))
                 throw new ValidationException("CNPJ é obrigatório para atualização.");
 
-            var digits = DocumentoHelper.NormalizeDigits(cnpj);
+            // Substituindo o método NormalizeDigits
+            var digits = cnpj.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
             if (digits.Length != 14) throw new ValidationException("CNPJ inválido.");
 
             var formatted = DocumentoHelper.FormatCnpj(digits);
 
-            PessoaJuridica? pessoa = await _pessoaRepository.GetPessoaJuridicaByCnpjAsync(formatted);
+            PessoaJuridica? pessoaExistente = await _pessoaRepository.GetPessoaJuridicaByCnpjAsync(formatted);
 
-            if (pessoa == null)
+            if (pessoaExistente == null)
                 throw new Exception("Pessoa jurídica não encontrada.");
 
             if (!string.IsNullOrWhiteSpace(cnpjRaw))
@@ -120,48 +127,59 @@ namespace CadastroPessoas.Application.Services
                 if (!DocumentoHelper.IsValidCnpj(cnpjRaw))
                     throw new ValidationException("CNPJ inválido.");
                 var cnpjFormatted = DocumentoHelper.FormatCnpj(cnpjRaw);
-                if (!string.Equals(cnpjFormatted, pessoa.CNPJ, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(cnpjFormatted, pessoaExistente.CNPJ, StringComparison.OrdinalIgnoreCase))
                     throw new Exception("Não é permitido alterar o CNPJ (documento).");
             }
 
+            // Criar o novo endereço
+            Endereco novoEndereco;
             if (!string.IsNullOrWhiteSpace(cep))
             {
                 Endereco? enderecoViaCep = await _viaCepService.ConsultarEnderecoPorCepAsync(cep)
                                                 ?? throw new ValidationException("Endereço não encontrado para o CEP informado.");
 
-                var novoEndereco = new Endereco(
+                novoEndereco = new Endereco(
                     enderecoViaCep.Cep,
                     enderecoViaCep.Logradouro,
                     enderecoViaCep.Bairro,
                     enderecoViaCep.Cidade,
                     enderecoViaCep.Estado,
-                    numero ?? pessoa.Endereco.Numero,
-                    complemento ?? pessoa.Endereco.Complemento
+                    numero ?? pessoaExistente.Endereco.Numero,
+                    complemento ?? pessoaExistente.Endereco.Complemento
                 );
-
-                pessoa.AtualizarEndereco(novoEndereco);
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(numero) || !string.IsNullOrWhiteSpace(complemento))
-                {
-                    pessoa.AtualizarNumeroComplemento(numero ?? string.Empty, complemento ?? string.Empty);
-                }
+                // Manter o endereço atual, atualizando apenas número e complemento se fornecidos
+                novoEndereco = new Endereco(
+                    pessoaExistente.Endereco.Cep,
+                    pessoaExistente.Endereco.Logradouro,
+                    pessoaExistente.Endereco.Bairro,
+                    pessoaExistente.Endereco.Cidade,
+                    pessoaExistente.Endereco.Estado,
+                    !string.IsNullOrWhiteSpace(numero) ? numero : pessoaExistente.Endereco.Numero,
+                    !string.IsNullOrWhiteSpace(complemento) ? complemento : pessoaExistente.Endereco.Complemento
+                );
             }
 
-            var novaRazao = !string.IsNullOrWhiteSpace(razaoSocial) ? razaoSocial : pessoa.RazaoSocial;
-            var novoNomeFantasia = !string.IsNullOrWhiteSpace(nomeFantasia) ? nomeFantasia : pessoa.NomeFantasia;
-
-            pessoa.AtualizarDados(novaRazao, novoNomeFantasia, pessoa.CNPJ, pessoa.TipoPessoa);
+            // Criar uma nova PessoaJuridica com os dados atualizados
+            var pessoaAtualizada = new PessoaJuridica(
+                pessoaExistente.Id,
+                !string.IsNullOrWhiteSpace(razaoSocial) ? razaoSocial : pessoaExistente.RazaoSocial,
+                !string.IsNullOrWhiteSpace(nomeFantasia) ? nomeFantasia : pessoaExistente.NomeFantasia,
+                pessoaExistente.CNPJ,
+                pessoaExistente.Tipo, // Corrigido de TipoPessoa para Tipo
+                novoEndereco
+            );
 
             try
             {
-                await _pessoaRepository.UpdatePessoaJuridicaAsync(pessoa);
-                _logger.LogInformation("Pessoa Jurídica atualizada. Id: {Id}", pessoa.Id);
+                await _pessoaRepository.UpdatePessoaJuridicaAsync(pessoaAtualizada);
+                _logger.LogInformation("Pessoa Jurídica atualizada. Id: {Id}", pessoaAtualizada.Id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao atualizar Pessoa Jurídica. Id: {Id}", pessoa.Id);
+                _logger.LogError(ex, "Erro ao atualizar Pessoa Jurídica. Id: {Id}", pessoaAtualizada.Id);
                 throw;
             }
         }
@@ -173,7 +191,8 @@ namespace CadastroPessoas.Application.Services
             if (string.IsNullOrWhiteSpace(cnpj))
                 throw new ValidationException("CNPJ é obrigatório para exclusão.");
 
-            var digits = DocumentoHelper.NormalizeDigits(cnpj);
+            // Substituindo o método NormalizeDigits
+            var digits = cnpj.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
             if (digits.Length != 14) throw new ValidationException("CNPJ inválido.");
 
             var formatted = DocumentoHelper.FormatCnpj(digits);

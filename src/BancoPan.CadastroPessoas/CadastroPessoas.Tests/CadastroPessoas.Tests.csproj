@@ -19,9 +19,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CadastroPessoa.Application\CadastroPessoas.Application.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Adapters.Input.Api\CadastroPessoas.Adapters.Input.Api.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Adapters.Output.SQL\CadastroPessoas.Adapters.Output.SQL.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Adapters.Output.ViaCep\CadastroPessoas.Adapters.Output.ViaCep.csproj" />
     <ProjectReference Include="..\CadastroPessoas.API\CadastroPessoas.API.csproj" />
     <ProjectReference Include="..\CadastroPessoas.Domain\CadastroPessoas.Domain.csproj" />
-    <ProjectReference Include="..\CadastroPessoas.Infrasctructure.SQL\CadastroPessoas.Infrastructure.SQL.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Ports.Input\CadastroPessoas.Ports.Input.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Ports.Output\CadastroPessoas.Ports.Output.csproj" />
   </ItemGroup>
 
   <ItemGroup>

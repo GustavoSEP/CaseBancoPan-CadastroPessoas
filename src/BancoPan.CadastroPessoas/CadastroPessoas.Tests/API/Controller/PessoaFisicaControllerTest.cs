@@ -1,6 +1,5 @@
-﻿using CadastroPessoas.API.Controllers;
-using CadastroPessoas.API.Models.Requests;
-using CadastroPessoas.API.Models.Responses;
+﻿using CadastroPessoas.Adapters.Input.Api.Controllers;
+using CadastroPessoas.Adapters.Input.Api.Models;
 using CadastroPessoas.Application.Interfaces;
 using CadastroPessoas.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;

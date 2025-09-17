@@ -9,10 +9,13 @@
   <ItemGroup>
 	<PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CadastroPessoas.Domain\CadastroPessoas.Domain.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Ports.Input\CadastroPessoas.Ports.Input.csproj" />
+    <ProjectReference Include="..\CadastroPessoas.Ports.Output\CadastroPessoas.Ports.Output.csproj" />
   </ItemGroup>
 
 </Project>
