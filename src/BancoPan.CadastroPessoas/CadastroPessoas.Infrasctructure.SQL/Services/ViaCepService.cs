@@ -9,6 +9,11 @@ using Microsoft.Extensions.Logging;
 
 namespace CadastroPessoas.Infrastructure.SQL.Services
 {
+    /// <summary>
+    /// Implementação do serviço de consulta de CEP através da API ViaCEP.
+    /// Fornece funcionalidade para buscar endereços completos a partir de um CEP,
+    /// com suporte a cache para melhorar a performance e reduzir chamadas à API externa.
+    /// </summary>
     public class ViaCepService : IViaCepService
     {
         private readonly HttpClient _httpClient;
@@ -17,6 +22,16 @@ namespace CadastroPessoas.Infrastructure.SQL.Services
         private readonly ILogger<ViaCepService> _logger;
         private readonly TimeSpan _cacheDuration = TimeSpan.FromHours(6);
 
+        /// <summary>
+        /// Inicializa uma nova instância da classe <see cref="ViaCepService"/>.
+        /// </summary>
+        /// <param name="httpClient">Cliente HTTP utilizado para fazer requisições à API ViaCEP.</param>
+        /// <param name="cache">Provedor de cache em memória para armazenar resultados de consultas.</param>
+        /// <param name="logger">Serviço de log para registrar informações e erros.</param>
+        /// <exception cref="ArgumentNullException">Lançada quando alguma das dependências é nula.</exception>
+        /// <remarks>
+        /// O HttpClient deve estar configurado com a URL base da API ViaCEP: https://viacep.com.br/ws/
+        /// </remarks>
         public ViaCepService(HttpClient httpClient, IMemoryCache cache, ILogger<ViaCepService> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
@@ -29,6 +44,20 @@ namespace CadastroPessoas.Infrastructure.SQL.Services
             };
         }
 
+        /// <summary>
+        /// Consulta um endereço completo a partir de um CEP.
+        /// </summary>
+        /// <param name="cep">O CEP a ser consultado (formato: 00000-000 ou 00000000).</param>
+        /// <returns>
+        /// Um objeto <see cref="Endereco"/> contendo os dados do endereço correspondente ao CEP informado,
+        /// ou null caso o CEP seja inválido ou não seja encontrado.
+        /// </returns>
+        /// <exception cref="ArgumentException">Lançada quando o CEP fornecido é nulo ou vazio.</exception>
+        /// <exception cref="Exception">Lançada quando ocorre um erro inesperado durante a consulta.</exception>
+        /// <remarks>
+        /// Os resultados são armazenados em cache por 6 horas para melhorar a performance.
+        /// Erros de timeout ou conexão com a API externa não causam exceções, apenas retornam null.
+        /// </remarks>
         public async Task<Endereco?> ConsultarEnderecoPorCepAsync(string cep)
         {
             if (string.IsNullOrWhiteSpace(cep))
@@ -97,18 +126,49 @@ namespace CadastroPessoas.Infrastructure.SQL.Services
             }
         }
 
+        /// <summary>
+        /// Normaliza um CEP removendo caracteres especiais e espaços.
+        /// </summary>
+        /// <param name="cep">O CEP a ser normalizado.</param>
+        /// <returns>CEP contendo apenas dígitos (formato: 00000000).</returns>
         private static string NormalizeCep(string cep)
         {
             return cep.Replace("-", "").Trim();
         }
 
+        /// <summary>
+        /// Classe interna para deserialização da resposta da API ViaCEP.
+        /// </summary>
         private class ViaCepResponse
         {
+            /// <summary>
+            /// CEP no formato 00000-000.
+            /// </summary>
             public string? Cep { get; set; }
+
+            /// <summary>
+            /// Nome da rua, avenida, etc.
+            /// </summary>
             public string? Logradouro { get; set; }
+
+            /// <summary>
+            /// Nome do bairro.
+            /// </summary>
             public string? Bairro { get; set; }
+
+            /// <summary>
+            /// Nome da cidade.
+            /// </summary>
             public string? Localidade { get; set; }
+
+            /// <summary>
+            /// Sigla do estado (UF).
+            /// </summary>
             public string? Uf { get; set; }
+
+            /// <summary>
+            /// Indica se houve erro na consulta do CEP.
+            /// </summary>
             public bool Erro { get; set; } = false;
         }
     }

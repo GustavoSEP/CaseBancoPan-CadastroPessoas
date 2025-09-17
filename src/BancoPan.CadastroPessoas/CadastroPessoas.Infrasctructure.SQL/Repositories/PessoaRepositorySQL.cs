@@ -5,16 +5,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CadastroPessoas.Infrastructure.SQL.Repositories
 {
+    /// <summary>
+    /// Implementação do repositório de pessoas utilizando SQL Server com Entity Framework Core.
+    /// Gerencia operações de persistência para entidades PessoaFisica e PessoaJuridica.
+    /// </summary>
     public class PessoaRepositorySQL : IPessoaRepository
     {
         private readonly AppDbContext _context;
 
+        /// <summary>
+        /// Inicializa uma nova instância da classe <see cref="PessoaRepositorySQL"/>.
+        /// </summary>
+        /// <param name="context">O contexto do Entity Framework Core para acesso ao banco de dados.</param>
+        /// <exception cref="ArgumentNullException">Lançada quando o contexto fornecido é nulo.</exception>
         public PessoaRepositorySQL(AppDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        // PessoaFisica
+        #region PessoaFisica
+
+        /// <summary>
+        /// Adiciona uma nova pessoa física ao banco de dados.
+        /// </summary>
+        /// <param name="pessoa">A entidade PessoaFisica a ser adicionada.</param>
+        /// <returns>A entidade PessoaFisica adicionada, com seu Id gerado pelo banco de dados.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro no processo de inserção no banco de dados.</exception>
         public async Task<PessoaFisica> AddPessoaFisicaAsync(PessoaFisica pessoa)
         {
             try
@@ -29,6 +45,14 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Lista todas as pessoas físicas cadastradas no banco de dados.
+        /// </summary>
+        /// <returns>Uma coleção contendo todas as pessoas físicas cadastradas.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao consultar o banco de dados.</exception>
+        /// <remarks>
+        /// Utiliza AsNoTracking() para melhorar a performance em operações somente leitura.
+        /// </remarks>
         public async Task<IEnumerable<PessoaFisica>> ListPessoaFisicaAsync()
         {
             try
@@ -41,6 +65,12 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Busca uma pessoa física pelo seu Id.
+        /// </summary>
+        /// <param name="id">O Id da pessoa física a ser buscada.</param>
+        /// <returns>A entidade PessoaFisica correspondente ao Id informado, ou null caso não seja encontrada.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao consultar o banco de dados.</exception>
         public async Task<PessoaFisica?> GetPessoaFisicaByIdAsync(int id)
         {
             try
@@ -53,6 +83,15 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Busca uma pessoa física pelo seu CPF.
+        /// </summary>
+        /// <param name="cpf">O CPF da pessoa física a ser buscada (formato: 000.000.000-00).</param>
+        /// <returns>A entidade PessoaFisica correspondente ao CPF informado, ou null caso não seja encontrada.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao consultar o banco de dados.</exception>
+        /// <remarks>
+        /// Utiliza AsNoTracking() para melhorar a performance em operações somente leitura.
+        /// </remarks>
         public async Task<PessoaFisica?> GetPessoaFisicaByCpfAsync(string cpf)
         {
             try
@@ -66,6 +105,15 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Verifica se existe uma pessoa física com o CPF informado.
+        /// </summary>
+        /// <param name="cpf">O CPF a ser verificado (formato: 000.000.000-00).</param>
+        /// <returns>True se existir uma pessoa física com o CPF informado, caso contrário False.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao consultar o banco de dados.</exception>
+        /// <remarks>
+        /// Utiliza AsNoTracking() para melhorar a performance em operações somente leitura.
+        /// </remarks>
         public async Task<bool> ExistsPessoaFisicaByCpfAsync(string cpf)
         {
             try
@@ -79,6 +127,12 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Atualiza os dados de uma pessoa física existente.
+        /// </summary>
+        /// <param name="pessoa">A entidade PessoaFisica com os dados atualizados.</param>
+        /// <returns>Task representando a operação assíncrona.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao atualizar o registro no banco de dados.</exception>
         public async Task UpdatePessoaFisicaAsync(PessoaFisica pessoa)
         {
             try
@@ -92,6 +146,15 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Remove uma pessoa física do banco de dados.
+        /// </summary>
+        /// <param name="id">O Id da pessoa física a ser removida.</param>
+        /// <returns>Task representando a operação assíncrona.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao remover o registro do banco de dados.</exception>
+        /// <remarks>
+        /// Se a pessoa física não for encontrada, nenhuma ação será tomada.
+        /// </remarks>
         public async Task DeletePessoaFisicaAsync(int id)
         {
             try
@@ -109,7 +172,16 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
-        // PessoaJuridica
+        #endregion
+
+        #region PessoaJuridica
+
+        /// <summary>
+        /// Adiciona uma nova pessoa jurídica ao banco de dados.
+        /// </summary>
+        /// <param name="pessoa">A entidade PessoaJuridica a ser adicionada.</param>
+        /// <returns>A entidade PessoaJuridica adicionada, com seu Id gerado pelo banco de dados.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro no processo de inserção no banco de dados.</exception>
         public async Task<PessoaJuridica> AddPessoaJuridicaAsync(PessoaJuridica pessoa)
         {
             try
@@ -124,6 +196,14 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Lista todas as pessoas jurídicas cadastradas no banco de dados.
+        /// </summary>
+        /// <returns>Uma coleção contendo todas as pessoas jurídicas cadastradas.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao consultar o banco de dados.</exception>
+        /// <remarks>
+        /// Utiliza AsNoTracking() para melhorar a performance em operações somente leitura.
+        /// </remarks>
         public async Task<IEnumerable<PessoaJuridica>> ListPessoaJuridicaAsync()
         {
             try
@@ -136,6 +216,12 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Busca uma pessoa jurídica pelo seu Id.
+        /// </summary>
+        /// <param name="id">O Id da pessoa jurídica a ser buscada.</param>
+        /// <returns>A entidade PessoaJuridica correspondente ao Id informado, ou null caso não seja encontrada.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao consultar o banco de dados.</exception>
         public async Task<PessoaJuridica?> GetPessoaJuridicaByIdAsync(int id)
         {
             try
@@ -148,6 +234,15 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Busca uma pessoa jurídica pelo seu CNPJ.
+        /// </summary>
+        /// <param name="cnpj">O CNPJ da pessoa jurídica a ser buscada (formato: 00.000.000/0000-00).</param>
+        /// <returns>A entidade PessoaJuridica correspondente ao CNPJ informado, ou null caso não seja encontrada.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao consultar o banco de dados.</exception>
+        /// <remarks>
+        /// Utiliza AsNoTracking() para melhorar a performance em operações somente leitura.
+        /// </remarks>
         public async Task<PessoaJuridica?> GetPessoaJuridicaByCnpjAsync(string cnpj)
         {
             try
@@ -161,6 +256,15 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Verifica se existe uma pessoa jurídica com o CNPJ informado.
+        /// </summary>
+        /// <param name="cnpj">O CNPJ a ser verificado (formato: 00.000.000/0000-00).</param>
+        /// <returns>True se existir uma pessoa jurídica com o CNPJ informado, caso contrário False.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao consultar o banco de dados.</exception>
+        /// <remarks>
+        /// Utiliza AsNoTracking() para melhorar a performance em operações somente leitura.
+        /// </remarks>
         public async Task<bool> ExistsPessoaJuridicaByCnpjAsync(string cnpj)
         {
             try
@@ -174,6 +278,12 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Atualiza os dados de uma pessoa jurídica existente.
+        /// </summary>
+        /// <param name="pessoa">A entidade PessoaJuridica com os dados atualizados.</param>
+        /// <returns>Task representando a operação assíncrona.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao atualizar o registro no banco de dados.</exception>
         public async Task UpdatePessoaJuridicaAsync(PessoaJuridica pessoa)
         {
             try
@@ -187,6 +297,15 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
             }
         }
 
+        /// <summary>
+        /// Remove uma pessoa jurídica do banco de dados.
+        /// </summary>
+        /// <param name="id">O Id da pessoa jurídica a ser removida.</param>
+        /// <returns>Task representando a operação assíncrona.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao remover o registro do banco de dados.</exception>
+        /// <remarks>
+        /// Se a pessoa jurídica não for encontrada, nenhuma ação será tomada.
+        /// </remarks>
         public async Task DeletePessoaJuridicaAsync(int id)
         {
             try
@@ -203,5 +322,7 @@ namespace CadastroPessoas.Infrastructure.SQL.Repositories
                 throw new Exception("Erro ao deletar Pessoa Jurídica: " + ex.Message, ex);
             }
         }
+
+        #endregion
     }
 }
