@@ -13,12 +13,28 @@ using Microsoft.Extensions.Logging;
 
 namespace CadastroPessoas.Application.UseCases
 {
+    /// <summary>
+    /// Use case responsável pela criação de pessoas físicas no sistema.
+    /// Implementa a interface <see cref="ICreatePessoaFisicaUseCase"/> seguindo 
+    /// os princípios da Arquitetura Hexagonal.
+    /// </summary>
+    /// <remarks>
+    /// Este use case valida o CPF, verifica se já existe uma pessoa com o mesmo CPF,
+    /// consulta o endereço pelo CEP informado e persiste a pessoa física no repositório.
+    /// </remarks>
     public class CreatePessoaFisicaUseCase : ICreatePessoaFisicaUseCase
     {
         private readonly IPessoaRepository _pessoaRepository;
         private readonly IEnderecoPorCepProvider _enderecoPorCepProvider;
         private readonly ILogger<CreatePessoaFisicaUseCase> _logger;
 
+        /// <summary>
+        /// Inicializa uma nova instância da classe <see cref="CreatePessoaFisicaUseCase"/>.
+        /// </summary>
+        /// <param name="pessoaRepository">Repositório para acesso aos dados de pessoas físicas.</param>
+        /// <param name="enderecoPorCepProvider">Provedor de consulta de endereço por CEP.</param>
+        /// <param name="logger">Logger para registro de operações.</param>
+        /// <exception cref="ArgumentNullException">Lançada quando algum parâmetro é nulo.</exception>
         public CreatePessoaFisicaUseCase(
             IPessoaRepository pessoaRepository,
             IEnderecoPorCepProvider enderecoPorCepProvider,
@@ -29,6 +45,18 @@ namespace CadastroPessoas.Application.UseCases
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Executa o caso de uso para criar uma nova pessoa física com base nos dados fornecidos.
+        /// </summary>
+        /// <param name="command">Comando contendo os dados necessários para criar uma pessoa física.</param>
+        /// <returns>DTO representando a pessoa física criada, incluindo seu ID gerado.</returns>
+        /// <exception cref="ValidationException">
+        /// Lançada quando:
+        /// - O CPF é inválido
+        /// - Já existe uma pessoa física com o CPF informado
+        /// - O CEP não retorna um endereço válido
+        /// </exception>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao inserir a pessoa física no repositório.</exception>
         public async Task<PessoaFisicaDto> ExecuteAsync(CreatePessoaFisicaCommand command)
         {
             _logger.LogInformation("Criando Pessoa Física. Nome: {Nome}, CPF: {Cpf}, CEP: {Cep}",

@@ -13,12 +13,28 @@ using Microsoft.Extensions.Logging;
 
 namespace CadastroPessoas.Application.UseCases
 {
+    /// <summary>
+    /// Use case responsável pela criação de pessoas jurídicas no sistema.
+    /// Implementa a interface <see cref="ICreatePessoaJuridicaUseCase"/> seguindo
+    /// os princípios da Arquitetura Hexagonal.
+    /// </summary>
+    /// <remarks>
+    /// Este use case valida o CNPJ, verifica se já existe uma pessoa jurídica com o mesmo CNPJ,
+    /// consulta o endereço pelo CEP informado e persiste a pessoa jurídica no repositório.
+    /// </remarks>
     public class CreatePessoaJuridicaUseCase : ICreatePessoaJuridicaUseCase
     {
         private readonly IPessoaRepository _pessoaRepository;
         private readonly IEnderecoPorCepProvider _enderecoPorCepProvider;
         private readonly ILogger<CreatePessoaJuridicaUseCase> _logger;
 
+        /// <summary>
+        /// Inicializa uma nova instância da classe <see cref="CreatePessoaJuridicaUseCase"/>.
+        /// </summary>
+        /// <param name="pessoaRepository">Repositório para acesso aos dados de pessoas jurídicas.</param>
+        /// <param name="enderecoPorCepProvider">Provedor de consulta de endereço por CEP.</param>
+        /// <param name="logger">Logger para registro de operações.</param>
+        /// <exception cref="ArgumentNullException">Lançada quando algum parâmetro é nulo.</exception>
         public CreatePessoaJuridicaUseCase(
             IPessoaRepository pessoaRepository,
             IEnderecoPorCepProvider enderecoPorCepProvider,
@@ -29,6 +45,18 @@ namespace CadastroPessoas.Application.UseCases
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Executa o caso de uso para criar uma nova pessoa jurídica com base nos dados fornecidos.
+        /// </summary>
+        /// <param name="command">Comando contendo os dados necessários para criar uma pessoa jurídica.</param>
+        /// <returns>DTO representando a pessoa jurídica criada, incluindo seu ID gerado.</returns>
+        /// <exception cref="ValidationException">
+        /// Lançada quando:
+        /// - O CNPJ é inválido
+        /// - Já existe uma pessoa jurídica com o CNPJ informado
+        /// - O CEP não retorna um endereço válido
+        /// </exception>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao inserir a pessoa jurídica no repositório.</exception>
         public async Task<PessoaJuridicaDto> ExecuteAsync(CreatePessoaJuridicaCommand command)
         {
             _logger.LogInformation("Criando Pessoa Jurídica. Razão Social: {RazaoSocial}, CNPJ: {Cnpj}, CEP: {Cep}",

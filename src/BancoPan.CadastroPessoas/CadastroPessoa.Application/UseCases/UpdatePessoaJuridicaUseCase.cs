@@ -12,12 +12,31 @@ using Microsoft.Extensions.Logging;
 
 namespace CadastroPessoas.Application.UseCases
 {
+    /// <summary>
+    /// Use case responsável pela atualização de pessoas jurídicas no sistema.
+    /// Implementa a interface <see cref="IUpdatePessoaJuridicaUseCase"/> seguindo
+    /// os princípios da Arquitetura Hexagonal.
+    /// </summary>
+    /// <remarks>
+    /// Este use case permite a atualização parcial de dados de uma pessoa jurídica,
+    /// mantendo imutáveis os campos que não devem ser alterados (como CNPJ e tipo).
+    /// A atualização é realizada de forma incremental, tratando cada campo de forma 
+    /// independente (razão social, nome fantasia, endereço) para evitar sobrescrita
+    /// de dados não fornecidos no comando.
+    /// </remarks>
     public class UpdatePessoaJuridicaUseCase : IUpdatePessoaJuridicaUseCase
     {
         private readonly IPessoaRepository _pessoaRepository;
         private readonly IEnderecoPorCepProvider _enderecoPorCepProvider;
         private readonly ILogger<UpdatePessoaJuridicaUseCase> _logger;
 
+        /// <summary>
+        /// Inicializa uma nova instância da classe <see cref="UpdatePessoaJuridicaUseCase"/>.
+        /// </summary>
+        /// <param name="pessoaRepository">Repositório para acesso aos dados de pessoas jurídicas.</param>
+        /// <param name="enderecoPorCepProvider">Provedor de consulta de endereço por CEP.</param>
+        /// <param name="logger">Logger para registro de operações.</param>
+        /// <exception cref="ArgumentNullException">Lançada quando algum parâmetro é nulo.</exception>
         public UpdatePessoaJuridicaUseCase(
             IPessoaRepository pessoaRepository,
             IEnderecoPorCepProvider enderecoPorCepProvider,
@@ -28,6 +47,26 @@ namespace CadastroPessoas.Application.UseCases
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Executa o caso de uso para atualizar uma pessoa jurídica existente.
+        /// </summary>
+        /// <param name="id">O ID da pessoa jurídica a ser atualizada.</param>
+        /// <param name="command">Comando contendo os dados a serem atualizados.</param>
+        /// <returns>DTO com os dados atualizados da pessoa jurídica.</returns>
+        /// <exception cref="ValidationException">
+        /// Lançada quando:
+        /// - A pessoa jurídica com o ID especificado não é encontrada
+        /// - O CEP fornecido não retorna um endereço válido
+        /// </exception>
+        /// <exception cref="Exception">Lançada quando ocorre um erro durante a atualização no repositório.</exception>
+        /// <remarks>
+        /// O método implementa uma abordagem incremental para atualização, onde:
+        /// 1. Verifica e atualiza os dados de identificação (razão social, nome fantasia)
+        /// 2. Verifica e atualiza o endereço via CEP, se fornecido
+        /// 3. Atualiza apenas número e complemento, se apenas estes foram fornecidos
+        /// 
+        /// O CNPJ e o tipo da pessoa não são alterados em nenhuma circunstância.
+        /// </remarks>
         public async Task<PessoaJuridicaDto> ExecuteAsync(int id, UpdatePessoaJuridicaCommand command)
         {
             _logger.LogInformation("Atualizando Pessoa Jurídica. ID: {Id}, Razão Social: {RazaoSocial}, CEP: {Cep}",
@@ -41,6 +80,7 @@ namespace CadastroPessoas.Application.UseCases
                 throw new ValidationException($"Pessoa Jurídica com ID {id} não encontrada.");
             }
 
+            // Consulta o endereço pelo CEP, se fornecido
             Endereco? enderecoViaCep = null;
             if (!string.IsNullOrWhiteSpace(command.CEP))
             {
@@ -48,6 +88,7 @@ namespace CadastroPessoas.Application.UseCases
                     ?? throw new ValidationException("Endereço não encontrado para o CEP informado.");
             }
 
+            // Atualiza razão social e/ou nome fantasia se fornecidos
             if (!string.IsNullOrWhiteSpace(command.RazaoSocial))
             {
                 pessoa = new PessoaJuridica(
@@ -71,6 +112,7 @@ namespace CadastroPessoas.Application.UseCases
                 );
             }
 
+            // Atualiza endereço completo se CEP foi consultado
             if (enderecoViaCep != null)
             {
                 var endereco = new Endereco(

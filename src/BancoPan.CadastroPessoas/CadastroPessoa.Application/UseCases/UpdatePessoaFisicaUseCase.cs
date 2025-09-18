@@ -12,12 +12,30 @@ using Microsoft.Extensions.Logging;
 
 namespace CadastroPessoas.Application.UseCases
 {
+    /// <summary>
+    /// Use case responsável pela atualização de pessoas físicas no sistema.
+    /// Implementa a interface <see cref="IUpdatePessoaFisicaUseCase"/> seguindo
+    /// os princípios da Arquitetura Hexagonal.
+    /// </summary>
+    /// <remarks>
+    /// Este use case permite a atualização parcial de dados de uma pessoa física,
+    /// mantendo imutáveis os campos que não devem ser alterados (como CPF e tipo).
+    /// Caso um CEP seja fornecido, o endereço é reconsultado; caso contrário,
+    /// apenas os campos específicos do endereço são atualizados.
+    /// </remarks>
     public class UpdatePessoaFisicaUseCase : IUpdatePessoaFisicaUseCase
     {
         private readonly IPessoaRepository _pessoaRepository;
         private readonly IEnderecoPorCepProvider _enderecoPorCepProvider;
         private readonly ILogger<UpdatePessoaFisicaUseCase> _logger;
 
+        /// <summary>
+        /// Inicializa uma nova instância da classe <see cref="UpdatePessoaFisicaUseCase"/>.
+        /// </summary>
+        /// <param name="pessoaRepository">Repositório para acesso aos dados de pessoas físicas.</param>
+        /// <param name="enderecoPorCepProvider">Provedor de consulta de endereço por CEP.</param>
+        /// <param name="logger">Logger para registro de operações.</param>
+        /// <exception cref="ArgumentNullException">Lançada quando algum parâmetro é nulo.</exception>
         public UpdatePessoaFisicaUseCase(
             IPessoaRepository pessoaRepository,
             IEnderecoPorCepProvider enderecoPorCepProvider,
@@ -28,6 +46,22 @@ namespace CadastroPessoas.Application.UseCases
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Executa o caso de uso para atualizar uma pessoa física existente.
+        /// </summary>
+        /// <param name="id">O ID da pessoa física a ser atualizada.</param>
+        /// <param name="command">Comando contendo os dados a serem atualizados.</param>
+        /// <returns>DTO com os dados atualizados da pessoa física.</returns>
+        /// <exception cref="ValidationException">
+        /// Lançada quando:
+        /// - A pessoa física com o ID especificado não é encontrada
+        /// - O CEP fornecido não retorna um endereço válido
+        /// </exception>
+        /// <exception cref="Exception">Lançada quando ocorre um erro durante a atualização no repositório.</exception>
+        /// <remarks>
+        /// Os campos não incluídos no comando de atualização ou com valor nulo mantêm seus valores originais.
+        /// O CPF e o tipo da pessoa não são alterados, mesmo se fornecidos no comando.
+        /// </remarks>
         public async Task<PessoaFisicaDto> ExecuteAsync(int id, UpdatePessoaFisicaCommand command)
         {
             _logger.LogInformation("Atualizando Pessoa Física. ID: {Id}, Nome: {Nome}, CEP: {Cep}",

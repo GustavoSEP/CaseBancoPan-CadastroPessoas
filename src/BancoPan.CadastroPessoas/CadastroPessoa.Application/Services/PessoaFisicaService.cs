@@ -8,12 +8,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CadastroPessoas.Application.Services
 {
+    /// <summary>
+    /// Serviço para gerenciamento de pessoas físicas, implementando a interface <see cref="IPessoaFisicaService"/>.
+    /// Provê funcionalidades para criar, listar, buscar, atualizar e excluir pessoas físicas.
+    /// </summary>
     public class PessoaFisicaService : IPessoaFisicaService
     {
         private readonly IPessoaRepository _pessoaRepository;
         private readonly IViaCepService _viaCepService;
         private readonly ILogger<PessoaFisicaService> _logger;
 
+        /// <summary>
+        /// Inicializa uma nova instância da classe <see cref="PessoaFisicaService"/>.
+        /// </summary>
+        /// <param name="pessoaRepository">Repositório para acesso aos dados de pessoas físicas.</param>
+        /// <param name="viaCepService">Serviço para consulta de endereços pelo CEP.</param>
+        /// <param name="logger">Logger para registro de operações.</param>
+        /// <exception cref="ArgumentNullException">Lançada quando algum parâmetro é nulo.</exception>
         public PessoaFisicaService(IPessoaRepository pessoaRepository, IViaCepService viaCepService, ILogger<PessoaFisicaService> logger)
         {
             _pessoaRepository = pessoaRepository ?? throw new ArgumentNullException(nameof(pessoaRepository));
@@ -21,6 +32,17 @@ namespace CadastroPessoas.Application.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Cria uma nova pessoa física com os dados fornecidos.
+        /// </summary>
+        /// <param name="nome">Nome da pessoa física.</param>
+        /// <param name="cpfRaw">CPF não formatado.</param>
+        /// <param name="cep">CEP para consulta e criação do endereço.</param>
+        /// <param name="numero">Número do endereço.</param>
+        /// <param name="complemento">Complemento do endereço.</param>
+        /// <returns>A pessoa física criada, incluindo seu ID gerado.</returns>
+        /// <exception cref="ValidationException">Lançada quando o CPF é inválido ou o CEP não retorna um endereço válido.</exception>
+        /// <exception cref="Exception">Lançada quando já existe uma pessoa física com o CPF informado ou ocorre um erro no repositório.</exception>
         public async Task<PessoaFisica> CreateAsync(string nome, string cpfRaw, string cep, string numero, string complemento)
         {
             _logger.LogInformation("Criando Pessoa Física. Nome: {Nome}, CPF(raw): {CpfRaw}, CEP: {Cep}", nome, cpfRaw, cep);
@@ -62,6 +84,11 @@ namespace CadastroPessoas.Application.Services
             }
         }
 
+        /// <summary>
+        /// Lista todas as pessoas físicas cadastradas.
+        /// </summary>
+        /// <returns>Coleção de pessoas físicas.</returns>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao acessar o repositório.</exception>
         public Task<IEnumerable<PessoaFisica>> ListAsync()
         {
             _logger.LogInformation("Listando Pessoas Físicas.");
@@ -76,6 +103,13 @@ namespace CadastroPessoas.Application.Services
             }
         }
 
+        /// <summary>
+        /// Busca uma pessoa física pelo CPF.
+        /// </summary>
+        /// <param name="cpf">CPF da pessoa física, pode ser formatado ou não.</param>
+        /// <returns>A pessoa física encontrada ou null se não existir.</returns>
+        /// <exception cref="ValidationException">Lançada quando o CPF é inválido ou vazio.</exception>
+        /// <exception cref="Exception">Lançada quando ocorre um erro ao acessar o repositório.</exception>
         public async Task<PessoaFisica?> GetByCpfAsync(string cpf)
         {
             _logger.LogInformation("Buscando Pessoa Física por CPF: {Cpf}", cpf);
@@ -101,6 +135,18 @@ namespace CadastroPessoas.Application.Services
             }
         }
 
+        /// <summary>
+        /// Atualiza os dados de uma pessoa física identificada pelo CPF.
+        /// </summary>
+        /// <param name="cpf">CPF da pessoa física a ser atualizada.</param>
+        /// <param name="nome">Novo nome (opcional).</param>
+        /// <param name="cpfRaw">CPF para validação (deve ser o mesmo da pessoa).</param>
+        /// <param name="cep">Novo CEP para atualização de endereço (opcional).</param>
+        /// <param name="numero">Novo número de endereço (opcional).</param>
+        /// <param name="complemento">Novo complemento de endereço (opcional).</param>
+        /// <returns>Task representando a operação assíncrona.</returns>
+        /// <exception cref="ValidationException">Lançada quando o CPF é inválido, vazio ou o CEP não retorna um endereço válido.</exception>
+        /// <exception cref="Exception">Lançada quando a pessoa física não é encontrada, quando tenta-se alterar o CPF, ou quando ocorre um erro no repositório.</exception>
         public async Task UpdateByCpfAsync(string cpf, string? nome, string? cpfRaw, string? cep, string? numero, string? complemento)
         {
             _logger.LogInformation("Atualizando Pessoa Física. CPF alvo: {Cpf}", cpf);
@@ -181,6 +227,13 @@ namespace CadastroPessoas.Application.Services
             }
         }
 
+        /// <summary>
+        /// Exclui uma pessoa física pelo CPF.
+        /// </summary>
+        /// <param name="cpf">CPF da pessoa física a ser excluída.</param>
+        /// <returns>Task representando a operação assíncrona.</returns>
+        /// <exception cref="ValidationException">Lançada quando o CPF é inválido ou vazio.</exception>
+        /// <exception cref="Exception">Lançada quando a pessoa física não é encontrada ou ocorre um erro no repositório.</exception>
         public async Task DeleteByCpfAsync(string cpf)
         {
             _logger.LogInformation("Excluindo Pessoa Física por CPF: {Cpf}", cpf);
