@@ -12,6 +12,7 @@ Projeto desenvolvido como parte de uma entrevista técnica para o Banco Pan, vis
 - [Sistema de Cadastro de Pessoas - Desafio Técnico - Banco Pan](#sistema-de-cadastro-de-pessoas---desafio-técnico---banco-pan)
   - [📋 Índice](#-índice)
   - [🔍 Visão Geral](#-visão-geral)
+  - [🏗️ Arquitetura Clean Architecture](#️-arquitetura-clean-architecture)
     - [Estrutura de Pastas](#estrutura-de-pastas)
     - [Camadas](#camadas)
   - [🚀 Funcionalidades](#-funcionalidades)
@@ -39,6 +40,11 @@ Projeto desenvolvido como parte de uma entrevista técnica para o Banco Pan, vis
 ## 🔍 Visão Geral
 
 O Sistema de Cadastro de Pessoas é uma API que permite o gerenciamento completo de registros de pessoas físicas e jurídicas. O sistema possibilita operações CRUD (Create, Read, Update, Delete) para ambos os tipos de entidades, com validação de documentos brasileiros (CPF e CNPJ) e integração com serviços externos para enriquecimento de dados.
+
+
+## 🏗️ Arquitetura Clean Architecture
+
+Este projeto implementa a **Clean Architecture**, com ênfase na separação entre regras de negócio e detalhes técnicos.
 
 
 ### Estrutura de Pastas
