@@ -2,181 +2,216 @@
 using System;
 using Xunit;
 
-namespace CadastroPessoas.Tests.Helpers
+namespace CadastroPessoas.Tests.Application.Helpers
 {
     public class DocumentoHelperTests
     {
         [Fact]
-        public void NormalizeDigits_DeveRemoverCaracteresNaoNumericos()
-        {
-
-            string entrada = "496.336.978-83";
-
-            string resultado = DocumentoHelper.NormalizeDigits(entrada);
-
-            Assert.Equal("49633697883", resultado);
-        }
-
-        [Fact]
-        public void NormalizeDigits_ComEntradaVazia_DeveRetornarStringVazia()
-        {
-            string resultado = DocumentoHelper.NormalizeDigits(null);
-
-            Assert.Equal("", resultado);
-        }
-
-        [Fact]
         public void IsValidCpf_ComCpfValido_DeveRetornarTrue()
         {
+            // Arrange
             string cpfValido = "529.982.247-25";
 
+            // Act
             bool resultado = DocumentoHelper.IsValidCpf(cpfValido);
 
+            // Assert
             Assert.True(resultado);
         }
 
         [Fact]
         public void IsValidCpf_ComCpfInvalido_DeveRetornarFalse()
         {
+            // Arrange
             string cpfInvalido = "111.111.111-11";
 
+            // Act
             bool resultado = DocumentoHelper.IsValidCpf(cpfInvalido);
 
+            // Assert
+            Assert.False(resultado);
+        }
+
+        [Fact]
+        public void IsValidCpf_ComCpfVazio_DeveRetornarFalse()
+        {
+            // Arrange
+            string cpfVazio = "";
+
+            // Act
+            bool resultado = DocumentoHelper.IsValidCpf(cpfVazio);
+
+            // Assert
+            Assert.False(resultado);
+        }
+
+        [Fact]
+        public void IsValidCpf_ComCpfNulo_DeveRetornarFalse()
+        {
+            // Arrange
+            string cpfNulo = null;
+
+            // Act
+            bool resultado = DocumentoHelper.IsValidCpf(cpfNulo);
+
+            // Assert
             Assert.False(resultado);
         }
 
         [Fact]
         public void FormatCpf_ComCpfValido_DeveFormatarCorretamente()
         {
+            // Arrange
             string cpfSemFormato = "49633697883";
 
+            // Act
             string resultado = DocumentoHelper.FormatCpf(cpfSemFormato);
 
+            // Assert
             Assert.Equal("496.336.978-83", resultado);
         }
 
         [Fact]
-        public void FormatCpf_ComCpfInvalido_DeveLancarExcecao()
+        public void FormatCpf_ComCpfFormatado_DeveManterFormatacao()
         {
-            string cpfInvalido = "1234";
+            // Arrange
+            string cpfFormatado = "496.336.978-83";
 
-            Assert.Throws<ArgumentException>(() => DocumentoHelper.FormatCpf(cpfInvalido));
+            // Act
+            string resultado = DocumentoHelper.FormatCpf(cpfFormatado);
+
+            // Assert
+            Assert.Equal("496.336.978-83", resultado);
+        }
+
+        [Fact]
+        public void FormatCpf_ComCpfVazio_DeveRetornarVazio()
+        {
+            // Arrange
+            string cpfVazio = "";
+
+            // Act
+            string resultado = DocumentoHelper.FormatCpf(cpfVazio);
+
+            // Assert
+            Assert.Equal(string.Empty, resultado);
+        }
+
+        [Fact]
+        public void FormatCpf_ComCpfCurto_DeveRetornarMesmoValor()
+        {
+            // Arrange
+            string cpfCurto = "1234";
+
+            // Act
+            string resultado = DocumentoHelper.FormatCpf(cpfCurto);
+
+            // Assert
+            Assert.Equal("1234", resultado);
         }
 
         [Fact]
         public void IsValidCnpj_ComCnpjValido_DeveRetornarTrue()
         {
+            // Arrange
             string cnpjValido = "30.306.294/0001-45";
 
+            // Act
             bool resultado = DocumentoHelper.IsValidCnpj(cnpjValido);
 
+            // Assert
             Assert.True(resultado);
         }
 
         [Fact]
         public void IsValidCnpj_ComCnpjInvalido_DeveRetornarFalse()
         {
+            // Arrange
             string cnpjInvalido = "11.111.111/1111-11";
 
+            // Act
             bool resultado = DocumentoHelper.IsValidCnpj(cnpjInvalido);
 
+            // Assert
+            Assert.False(resultado);
+        }
+
+        [Fact]
+        public void IsValidCnpj_ComCnpjVazio_DeveRetornarFalse()
+        {
+            // Arrange
+            string cnpjVazio = "";
+
+            // Act
+            bool resultado = DocumentoHelper.IsValidCnpj(cnpjVazio);
+
+            // Assert
+            Assert.False(resultado);
+        }
+
+        [Fact]
+        public void IsValidCnpj_ComCnpjNulo_DeveRetornarFalse()
+        {
+            // Arrange
+            string cnpjNulo = null;
+
+            // Act
+            bool resultado = DocumentoHelper.IsValidCnpj(cnpjNulo);
+
+            // Assert
             Assert.False(resultado);
         }
 
         [Fact]
         public void FormatCnpj_ComCnpjValido_DeveFormatarCorretamente()
         {
+            // Arrange
             string cnpjSemFormato = "30306294000145";
 
+            // Act
             string resultado = DocumentoHelper.FormatCnpj(cnpjSemFormato);
 
+            // Assert
             Assert.Equal("30.306.294/0001-45", resultado);
         }
 
         [Fact]
-        public void FormatCnpj_ComCnpjInvalido_DeveLancarExcecao()
+        public void FormatCnpj_ComCnpjFormatado_DeveManterFormatacao()
         {
-            string cnpjInvalido = "1234";
+            // Arrange
+            string cnpjFormatado = "30.306.294/0001-45";
 
-            Assert.Throws<ArgumentException>(() => DocumentoHelper.FormatCnpj(cnpjInvalido));
+            // Act
+            string resultado = DocumentoHelper.FormatCnpj(cnpjFormatado);
+
+            // Assert
+            Assert.Equal("30.306.294/0001-45", resultado);
         }
 
         [Fact]
-        public void IsValidTipoPessoa_ComTipoFisica_DeveRetornarTrue()
+        public void FormatCnpj_ComCnpjVazio_DeveRetornarVazio()
         {
-            string tipo = "F";
+            // Arrange
+            string cnpjVazio = "";
 
-            bool resultado = DocumentoHelper.IsValidTipoPessoa(tipo);
+            // Act
+            string resultado = DocumentoHelper.FormatCnpj(cnpjVazio);
 
-            Assert.True(resultado);
+            // Assert
+            Assert.Equal(string.Empty, resultado);
         }
 
         [Fact]
-        public void IsValidTipoPessoa_ComTipoJuridica_DeveRetornarTrue()
+        public void FormatCnpj_ComCnpjCurto_DeveRetornarMesmoValor()
         {
-            string tipo = "J";
+            // Arrange
+            string cnpjCurto = "1234";
 
-            bool resultado = DocumentoHelper.IsValidTipoPessoa(tipo);
+            // Act
+            string resultado = DocumentoHelper.FormatCnpj(cnpjCurto);
 
-            Assert.True(resultado);
-        }
-
-        [Fact]
-        public void IsValidTipoPessoa_ComTipoInvalido_DeveRetornarFalse()
-        {
-            string tipo = null;
-
-            bool resultado = DocumentoHelper.IsValidTipoPessoa(tipo);
-
-            Assert.False(resultado);
-        }
-
-        [Fact]
-        public void NormalizeTipoPessoa_ComTipoF_DeveRetornarF()
-        {
-            string tipo = "F";
-
-            string resultado = DocumentoHelper.NormalizeTipoPessoa(tipo);
-
-            Assert.Equal("F", resultado);
-        }
-
-        [Fact]
-        public void NormalizeTipoPessoa_ComTipoFisica_DeveRetornarF()
-        {
-            string tipo = "FISICA";
-
-            string resultado = DocumentoHelper.NormalizeTipoPessoa(tipo);
-
-            Assert.Equal("F", resultado);
-        }
-
-        [Fact]
-        public void NormalizeTipoPessoa_ComTipoJ_DeveRetornarJ()
-        {
-            string tipo = "J";
-
-            string resultado = DocumentoHelper.NormalizeTipoPessoa(tipo);
-
-            Assert.Equal("J", resultado);
-        }
-
-        [Fact]
-        public void NormalizeTipoPessoa_ComTipoJuridica_DeveRetornarJ()
-        {
-            string tipo = "JURIDICA";
-
-            string resultado = DocumentoHelper.NormalizeTipoPessoa(tipo);
-
-            Assert.Equal("J", resultado);
-        }
-
-        [Fact]
-        public void NormalizeTipoPessoa_ComTipoInvalido_DeveLancarExcecao()
-        {
-            string tipo = "X";
-
-            Assert.Throws<ArgumentException>(() => DocumentoHelper.NormalizeTipoPessoa(tipo));
+            // Assert
+            Assert.Equal("1234", resultado);
         }
     }
 }

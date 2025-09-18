@@ -1,36 +1,63 @@
-﻿using CadastroPessoas.API.Controllers;
-using CadastroPessoas.API.Models.Requests;
-using CadastroPessoas.API.Models.Responses;
-using CadastroPessoas.Application.Interfaces;
-using CadastroPessoas.Domain.Entities;
+﻿using CadastroPessoas.Adapters.Input.Api.Controllers;
+using CadastroPessoas.Adapters.Input.Api.Models;
+using CadastroPessoas.Ports.Input.Commands;
+using CadastroPessoas.Ports.Input.Dtos;
+using CadastroPessoas.Ports.Input.UseCases;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace CadastroPessoas.Tests.API.Controller
 {
     public class PessoaJuridicaControllerTest
     {
-        private readonly Mock<IPessoaJuridicaService> _mockService;
+        private readonly Mock<ICreatePessoaJuridicaUseCase> _mockCreateUseCase;
+        private readonly Mock<IGetPessoaJuridicaUseCase> _mockGetUseCase;
+        private readonly Mock<IUpdatePessoaJuridicaUseCase> _mockUpdateUseCase;
+        private readonly Mock<IDeletePessoaJuridicaUseCase> _mockDeleteUseCase;
         private readonly Mock<ILogger<PessoaJuridicaController>> _mockLogger;
         private readonly PessoaJuridicaController _controller;
 
         public PessoaJuridicaControllerTest()
         {
-            _mockService = new Mock<IPessoaJuridicaService>();
+            _mockCreateUseCase = new Mock<ICreatePessoaJuridicaUseCase>();
+            _mockGetUseCase = new Mock<IGetPessoaJuridicaUseCase>();
+            _mockUpdateUseCase = new Mock<IUpdatePessoaJuridicaUseCase>();
+            _mockDeleteUseCase = new Mock<IDeletePessoaJuridicaUseCase>();
             _mockLogger = new Mock<ILogger<PessoaJuridicaController>>();
-            _controller = new PessoaJuridicaController(_mockService.Object, _mockLogger.Object);
+            
+            _controller = new PessoaJuridicaController(
+                _mockCreateUseCase.Object,
+                _mockGetUseCase.Object,
+                _mockUpdateUseCase.Object,
+                _mockDeleteUseCase.Object,
+                _mockLogger.Object);
+        }
 
+        private EnderecoDto CriarEnderecoDto()
+        {
+            return new EnderecoDto
+            {
+                Cep = "01310100",
+                Logradouro = "Paulista",
+                Bairro = "Bela Vista",
+                Cidade = "São Paulo",
+                Estado = "SP",
+                Numero = "1374",
+                Complemento = ""
+            };
         }
 
         [Fact]
         public async Task Test_CriarPessoaJuridica_Ok()
         {
+            // Arrange
             var request = new PessoaJuridicaRequest
             {
                 RazaoSocial = "BANCO PAN S/A.",
@@ -41,40 +68,55 @@ namespace CadastroPessoas.Tests.API.Controller
                 Complemento = ""
             };
 
-            var endereco = new Endereco("01310100", "Paulista", "Bela Vista", "São Paulo", "SP", "1374", "");
-            var pessoaJuridica = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59285411000113", "J", endereco)
+            var endereco = CriarEnderecoDto();
+            var pessoaJuridicaDto = new PessoaJuridicaDto
             {
-                Id = 1
+                Id = 1,
+                RazaoSocial = "BANCO PAN S/A.",
+                NomeFantasia = "Banco Pan",
+                CNPJ = "59.285.411/0001-13",
+                Endereco = endereco,
+                DataCadastro = DateTime.Now
             };
 
-            _mockService.Setup(s => s.CreateAsync(
-                request.RazaoSocial, request.NomeFantasia, request.CNPJ, request.CEP, request.Numero, request.Complemento))
-                .ReturnsAsync(pessoaJuridica);
+            _mockCreateUseCase.Setup(s => s.ExecuteAsync(It.IsAny<CreatePessoaJuridicaCommand>()))
+                .ReturnsAsync(pessoaJuridicaDto);
 
+            // Act
             var result = await _controller.Create(request);
 
+            // Assert
             var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
             Assert.Equal("GetByCnpj", createdAtActionResult.ActionName);
-            Assert.Equal(pessoaJuridica.CNPJ, createdAtActionResult.RouteValues["cnpj"]);
+            Assert.Equal(pessoaJuridicaDto.CNPJ, createdAtActionResult.RouteValues["cnpj"]);
 
             var returnValue = Assert.IsType<PessoaJuridicaResponse>(createdAtActionResult.Value);
-            Assert.Equal(pessoaJuridica.Id, returnValue.Id);
-            Assert.Equal(pessoaJuridica.NomeFantasia, returnValue.NomeFantasia);
-            Assert.Equal(pessoaJuridica.CNPJ, returnValue.Documento);
+            Assert.Equal(pessoaJuridicaDto.Id, returnValue.Id);
+            Assert.Equal(pessoaJuridicaDto.NomeFantasia, returnValue.NomeFantasia);
+            Assert.Equal(pessoaJuridicaDto.CNPJ, returnValue.CNPJ);
         }
+        
         [Fact]
         public async Task Test_CriarPessoaJuridica_BadRequest()
         {
-            _controller.ModelState.AddModelError("RazaoSocial", "Razão Social é obrigatório");
+            // Arrange
             var request = new PessoaJuridicaRequest();
+            
+            _mockCreateUseCase.Setup(s => s.ExecuteAsync(It.IsAny<CreatePessoaJuridicaCommand>()))
+                .ThrowsAsync(new ValidationException("Razão Social é obrigatório"));
 
+            // Act
             var result = await _controller.Create(request);
 
-            Assert.IsType<BadRequestObjectResult>(result);
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("Razão Social é obrigatório", badRequestResult.Value);
         }
+        
         [Fact]
         public async Task Test_CriarPessoaJuridica_ServerError()
         {
+            // Arrange
             var request = new PessoaJuridicaRequest
             {
                 RazaoSocial = "BANCO PAN S/A.",
@@ -85,180 +127,326 @@ namespace CadastroPessoas.Tests.API.Controller
                 Complemento = ""
             };
 
-            _mockService.Setup(s => s.CreateAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            _mockCreateUseCase.Setup(s => s.ExecuteAsync(It.IsAny<CreatePessoaJuridicaCommand>()))
                 .ThrowsAsync(new Exception("Erro simulado"));
 
+            // Act
             var result = await _controller.Create(request);
 
+            // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, statusCodeResult.StatusCode);
+            Assert.Equal("Erro interno do servidor", statusCodeResult.Value);
         }
+        
         [Fact]
         public async Task Test_ListaPessoasJuridicas_Ok()
         {
-            var endereco = new Endereco("01310100", "Paulista", "Bela Vista", "São Paulo", "SP", "1374", "");
-            var pessoas = new List<PessoaJuridica>
+            // Arrange
+            var endereco = CriarEnderecoDto();
+            var pessoas = new List<PessoaJuridicaDto>
             {
-                new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", "59285411000113", "J", endereco) { Id = 2 },
-                new PessoaJuridica("BTG Pactual S.A", "BTG Pactual", "30306294000145", "J", endereco) { Id = 3 }
+                new PessoaJuridicaDto
+                {
+                    Id = 2,
+                    RazaoSocial = "BANCO PAN S/A.",
+                    NomeFantasia = "Banco Pan",
+                    CNPJ = "59.285.411/0001-13",
+                    Endereco = endereco,
+                    DataCadastro = DateTime.Now
+                },
+                new PessoaJuridicaDto
+                {
+                    Id = 3,
+                    RazaoSocial = "BTG Pactual S.A",
+                    NomeFantasia = "BTG Pactual",
+                    CNPJ = "30.306.294/0001-45",
+                    Endereco = endereco,
+                    DataCadastro = DateTime.Now
+                }
             };
 
-            _mockService.Setup(s => s.ListAsync()).ReturnsAsync(pessoas);
+            _mockGetUseCase.Setup(s => s.GetAllAsync()).ReturnsAsync(pessoas);
 
+            // Act
+            var result = await _controller.GetAll();
 
-            var result = await _controller.List();
-
+            // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnValue = Assert.IsAssignableFrom<IEnumerable<PessoaJuridicaResponse>>(okResult.Value);
-            Assert.Equal(2, returnValue.Count());
-        }
-        [Fact]
-        public async Task Test_ListaPessoasJuridicas_PaginaCorreta()
-        {
-            var endereco = new Endereco("01310100", "Paulista", "Bela Vista", "São Paulo", "SP", "1374", "");
-            var pessoas = new List<PessoaJuridica>();
-
-            for (int i = 0; i < 25; i++)
-            {
-                pessoas.Add(new PessoaJuridica($"RazaoSocial {i}", $"NomeFantasia {i}", $"{i}12345678", "J", endereco) { Id = i++ });
-            }
-
-            _mockService.Setup(s => s.ListAsync()).ReturnsAsync(pessoas);
-
-            var result = await _controller.List(2, 10);
-
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnValue = Assert.IsAssignableFrom<IEnumerable<PessoaJuridicaResponse>>(okResult.Value);
-            Assert.Equal(3, returnValue.Count());
-            Assert.Equal("NomeFantasia 20", returnValue.First().NomeFantasia);
+            var returnValue = Assert.IsAssignableFrom<List<PessoaJuridicaResponse>>(okResult.Value);
+            Assert.Equal(2, returnValue.Count);
+            Assert.Equal(pessoas[0].Id, returnValue[0].Id);
+            Assert.Equal(pessoas[0].RazaoSocial, returnValue[0].RazaoSocial);
+            Assert.Equal(pessoas[0].CNPJ, returnValue[0].CNPJ);
         }
 
         [Fact]
         public async Task Test_ListaPessoaJuridica_ThrowException_ServerError()
         {
-            _mockService.Setup(s => s.ListAsync())
+            // Arrange
+            _mockGetUseCase.Setup(s => s.GetAllAsync())
                 .ThrowsAsync(new Exception("Erro simulado"));
 
-            var result = await _controller.List();
+            // Act
+            var result = await _controller.GetAll();
 
+            // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, statusCodeResult.StatusCode);
+            Assert.Equal("Erro interno do servidor", statusCodeResult.Value);
         }
 
         [Fact]
-        public async Task Test_ObterPessoaJuridicaViacnpj_Ok()
+        public async Task Test_ObterPessoaJuridicaViaCnpj_Ok()
         {
+            // Arrange
             var cnpj = "59285411000113";
-            var endereco = new Endereco("01310100", "Paulista", "Bela Vista", "São Paulo", "SP", "1374", "");
-            var pessoa = new PessoaJuridica("BANCO PAN S/A.", "Banco Pan", cnpj, "F", endereco) { Id = 3 };
+            var endereco = CriarEnderecoDto();
+            var pessoa = new PessoaJuridicaDto
+            {
+                Id = 3,
+                RazaoSocial = "BANCO PAN S/A.",
+                NomeFantasia = "Banco Pan",
+                CNPJ = "59.285.411/0001-13",
+                Endereco = endereco,
+                DataCadastro = DateTime.Now
+            };
 
-            _mockService.Setup(s => s.GetByCnpjAsync(cnpj)).ReturnsAsync(pessoa);
+            _mockGetUseCase.Setup(s => s.GetByCnpjAsync(cnpj)).ReturnsAsync(pessoa);
 
+            // Act
             var result = await _controller.GetByCnpj(cnpj);
 
+            // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var returnValue = Assert.IsType<PessoaJuridicaResponse>(okResult.Value);
             Assert.Equal(pessoa.Id, returnValue.Id);
             Assert.Equal(pessoa.NomeFantasia, returnValue.NomeFantasia);
-            Assert.Equal(pessoa.CNPJ, returnValue.Documento);
+            Assert.Equal(pessoa.CNPJ, returnValue.CNPJ);
         }
 
         [Fact]
-        public async Task Test_ObterPessoaViacnpj_NotFound()
+        public async Task Test_ObterPessoaViaCnpj_NotFound()
         {
+            // Arrange
             var cnpj = "59285411000113";
-            _mockService.Setup(s => s.GetByCnpjAsync(cnpj)).ReturnsAsync((PessoaJuridica)null);
+            _mockGetUseCase.Setup(s => s.GetByCnpjAsync(cnpj))
+                .ThrowsAsync(new ValidationException("Pessoa jurídica não encontrada"));
 
+            // Act
             var result = await _controller.GetByCnpj(cnpj);
 
-            Assert.IsType<NotFoundResult>(result);
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Pessoa jurídica não encontrada", notFoundResult.Value);
         }
 
         [Fact]
-        public async Task Test_AtualizarPessoaViacnpj_Ok()
+        public async Task Test_AtualizarPessoaById_Ok()
         {
-            var cnpj = "59285411000113";
-            var request = new PessoaJuridicaRequest
+            // Arrange
+            var id = 1;
+            var request = new UpdatePessoaJuridicaRequest
             {
                 RazaoSocial = "BANCO PAN S/A.",
                 NomeFantasia = "Banco Panamericano",
-                CNPJ = "59285411000113",
                 CEP = "01310-100",
                 Numero = "1300",
                 Complemento = ""
             };
 
-            _mockService.Setup(s => s.UpdateByCnpjAsync(
-                cnpj, request.RazaoSocial, request.NomeFantasia, request.CNPJ, request.CEP, request.Numero, request.Complemento))
-                .Returns(Task.CompletedTask);
+            var updateResult = new PessoaJuridicaDto
+            {
+                Id = id,
+                RazaoSocial = request.RazaoSocial,
+                NomeFantasia = request.NomeFantasia,
+                CNPJ = "59.285.411/0001-13",
+                Endereco = new EnderecoDto
+                {
+                    Cep = request.CEP,
+                    Logradouro = "Paulista",
+                    Bairro = "Bela Vista",
+                    Cidade = "São Paulo",
+                    Estado = "SP",
+                    Numero = request.Numero,
+                    Complemento = request.Complemento
+                },
+                DataCadastro = DateTime.Now
+            };
 
-            var result = await _controller.UpdateByCnpj(cnpj, request);
+            _mockUpdateUseCase.Setup(s => s.ExecuteAsync(id, It.IsAny<UpdatePessoaJuridicaCommand>()))
+                .ReturnsAsync(updateResult);
 
-            Assert.IsType<NoContentResult>(result);
+            // Act
+            var result = await _controller.Update(id, request);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnValue = Assert.IsType<PessoaJuridicaResponse>(okResult.Value);
+            Assert.Equal(updateResult.Id, returnValue.Id);
+            Assert.Equal(updateResult.NomeFantasia, returnValue.NomeFantasia);
+            Assert.Equal(updateResult.CNPJ, returnValue.CNPJ);
         }
 
         [Fact]
-        public async Task Test_AtualizarPessoaViacnpj_BadRequest()
+        public async Task Test_AtualizarPessoaById_BadRequest()
         {
-            var cnpj = "59285411000113";
-            _controller.ModelState.AddModelError("Nome", "Nome é obrigatório");
-            var request = new PessoaJuridicaRequest();
+            // Arrange
+            var id = 1;
+            var request = new UpdatePessoaJuridicaRequest();
 
-            var result = await _controller.UpdateByCnpj(cnpj, request);
+            _mockUpdateUseCase.Setup(s => s.ExecuteAsync(id, It.IsAny<UpdatePessoaJuridicaCommand>()))
+                .ThrowsAsync(new ValidationException("Dados inválidos"));
 
-            Assert.IsType<BadRequestObjectResult>(result);
+            // Act
+            var result = await _controller.Update(id, request);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("Dados inválidos", badRequestResult.Value);
         }
 
         [Fact]
-        public async Task Test_AtualizarPessoaViacnpj_ServerError()
+        public async Task Test_AtualizarPessoaById_NotFound()
         {
-            var cnpj = "59285411000113";
-            var request = new PessoaJuridicaRequest
+            // Arrange
+            var id = 999;
+            var request = new UpdatePessoaJuridicaRequest
+            {
+                RazaoSocial = "BANCO PAN S/A.",
+                NomeFantasia = "Banco Panamericano",
+                CEP = "01310-100",
+                Numero = "1300",
+                Complemento = ""
+            };
+
+            _mockUpdateUseCase.Setup(s => s.ExecuteAsync(id, It.IsAny<UpdatePessoaJuridicaCommand>()))
+                .ThrowsAsync(new ValidationException("Pessoa jurídica não encontrada"));
+
+            // Act
+            var result = await _controller.Update(id, request);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Pessoa jurídica não encontrada", notFoundResult.Value);
+        }
+
+        [Fact]
+        public async Task Test_AtualizarPessoaById_ServerError()
+        {
+            // Arrange
+            var id = 1;
+            var request = new UpdatePessoaJuridicaRequest
             {
                 RazaoSocial = "BANCO PAN S/A.",
                 NomeFantasia = "Banco Pan",
-                CNPJ = "59285411000113",
                 CEP = "01310-100",
                 Numero = "1374",
                 Complemento = ""
             };
 
-            _mockService.Setup(s => s.UpdateByCnpjAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), 
-                It.IsAny<string>()))
+            _mockUpdateUseCase.Setup(s => s.ExecuteAsync(id, It.IsAny<UpdatePessoaJuridicaCommand>()))
                 .ThrowsAsync(new Exception("Erro simulado"));
 
-            var result = await _controller.UpdateByCnpj(cnpj, request);
+            // Act
+            var result = await _controller.Update(id, request);
 
+            // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, statusCodeResult.StatusCode);
+            Assert.Equal("Erro interno do servidor", statusCodeResult.Value);
         }
 
         [Fact]
-        public async Task Test_ExcluirPessoaViacnpj_Ok()
+        public async Task Test_ExcluirPessoaById_Ok()
         {
-            var cnpj = "59285411000113";
-            _mockService.Setup(s => s.DeleteByCnpjAsync(cnpj)).Returns(Task.CompletedTask);
+            // Arrange
+            var id = 1;
+            _mockDeleteUseCase.Setup(s => s.ExecuteAsync(id)).ReturnsAsync(true);
 
-            var result = await _controller.DeleteByCnpj(cnpj);
+            // Act
+            var result = await _controller.Delete(id);
 
+            // Assert
             Assert.IsType<NoContentResult>(result);
         }
 
         [Fact]
-        public async Task Test_ExcluirPessoaviacnpj_ServerError()
+        public async Task Test_ExcluirPessoaById_NotFound()
         {
-            var cnpj = "59285411000113";
-            _mockService.Setup(s => s.DeleteByCnpjAsync(cnpj))
+            // Arrange
+            var id = 999;
+            _mockDeleteUseCase.Setup(s => s.ExecuteAsync(id))
+                .ThrowsAsync(new ValidationException("Pessoa jurídica não encontrada"));
+
+            // Act
+            var result = await _controller.Delete(id);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Pessoa jurídica não encontrada", notFoundResult.Value);
+        }
+
+        [Fact]
+        public async Task Test_ExcluirPessoaById_ServerError()
+        {
+            // Arrange
+            var id = 1;
+            _mockDeleteUseCase.Setup(s => s.ExecuteAsync(id))
                 .ThrowsAsync(new Exception("Erro simulado"));
 
-            var result = await _controller.DeleteByCnpj(cnpj);
+            // Act
+            var result = await _controller.Delete(id);
 
+            // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, statusCodeResult.StatusCode);
+            Assert.Equal("Erro interno do servidor", statusCodeResult.Value);
+        }
+
+        [Fact]
+        public async Task Test_GetById_ReturnsOkWithPessoa()
+        {
+            // Arrange
+            var id = 1;
+            var endereco = CriarEnderecoDto();
+            var pessoa = new PessoaJuridicaDto
+            {
+                Id = id,
+                RazaoSocial = "BANCO PAN S/A.",
+                NomeFantasia = "Banco Pan",
+                CNPJ = "59.285.411/0001-13",
+                Endereco = endereco,
+                DataCadastro = DateTime.Now
+            };
+
+            _mockGetUseCase.Setup(s => s.GetByIdAsync(id)).ReturnsAsync(pessoa);
+
+            // Act
+            var result = await _controller.GetById(id);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnValue = Assert.IsType<PessoaJuridicaResponse>(okResult.Value);
+            Assert.Equal(pessoa.Id, returnValue.Id);
+            Assert.Equal(pessoa.NomeFantasia, returnValue.NomeFantasia);
+            Assert.Equal(pessoa.CNPJ, returnValue.CNPJ);
+        }
+
+        [Fact]
+        public async Task Test_GetById_ReturnsNotFound()
+        {
+            // Arrange
+            var id = 999;
+            _mockGetUseCase.Setup(s => s.GetByIdAsync(id))
+                .ThrowsAsync(new ValidationException("Pessoa jurídica não encontrada"));
+
+            // Act
+            var result = await _controller.GetById(id);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Pessoa jurídica não encontrada", notFoundResult.Value);
         }
     }
 }
