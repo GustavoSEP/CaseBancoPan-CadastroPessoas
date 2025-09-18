@@ -16,8 +16,7 @@ Projeto desenvolvido como parte de uma entrevista técnica para o Banco Pan, vis
   - [🔍 Visão Geral](#-visão-geral)
   - [🏗️ Arquitetura Hexagonal](#️-arquitetura-hexagonal)
     - [Estrutura de Pastas](#estrutura-de-pastas)
-  - [📊 Diagrama de Arquitetura](#-diagrama-de-arquitetura)
-  - [🚀 Funcionalidades](#-funcionalidades)
+  - [� Funcionalidades](#-funcionalidades)
     - [Gerenciamento de Pessoas Físicas](#gerenciamento-de-pessoas-físicas)
     - [Gerenciamento de Pessoas Jurídicas](#gerenciamento-de-pessoas-jurídicas)
     - [Validação de Documentos](#validação-de-documentos)
@@ -83,9 +82,6 @@ src/BancoPan.CadastroPessoas/
         └── Services/                           # Testes de serviços externos
 ```
 
-## 📊 Diagrama de Arquitetura
-
-A Arquitetura do projeto segue o conceito de arquitetura Hexagonal, onde esse projeto foi originalmente desenvolvido em Clean Architecture.
 
 ## 🚀 Funcionalidades
 
