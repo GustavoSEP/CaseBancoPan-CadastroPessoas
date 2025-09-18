@@ -79,7 +79,7 @@ builder.Services.AddScoped<IEnderecoPorCepProvider, ViaCepAdapter>();
 // Depois registre o adaptador para o serviço legado
 builder.Services.AddScoped<IViaCepService, ViaCepServiceAdapter>();
 
-// Registrar Use Cases (Arquitetura Hexagonal)
+// Registrar Use Cases
 builder.Services.AddScoped<ICreatePessoaFisicaUseCase, CreatePessoaFisicaUseCase>();
 builder.Services.AddScoped<IGetPessoaFisicaUseCase, GetPessoaFisicaUseCase>();
 builder.Services.AddScoped<IUpdatePessoaFisicaUseCase, UpdatePessoaFisicaUseCase>();
@@ -114,7 +114,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthorization();
 
-// Mapear controllers de ambos os namespaces (API original e Adapters.Input.Api)
+// Mapear controllers
 app.MapControllers();
 
 app.Run();
