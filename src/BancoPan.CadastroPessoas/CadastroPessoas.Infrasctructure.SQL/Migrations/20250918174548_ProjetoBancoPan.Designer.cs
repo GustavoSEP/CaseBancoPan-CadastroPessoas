@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CadastroPessoas.Infrastructure.SQL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250916171041_InitialChanges")]
-    partial class InitialChanges
+    [Migration("20250918174548_ProjetoBancoPan")]
+    partial class ProjetoBancoPan
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

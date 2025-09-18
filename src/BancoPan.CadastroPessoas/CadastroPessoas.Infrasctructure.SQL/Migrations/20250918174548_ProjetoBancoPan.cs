@@ -5,7 +5,7 @@
 namespace CadastroPessoas.Infrastructure.SQL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialChanges : Migration
+    public partial class ProjetoBancoPan : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
