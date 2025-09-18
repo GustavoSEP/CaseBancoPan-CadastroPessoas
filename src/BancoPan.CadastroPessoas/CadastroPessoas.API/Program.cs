@@ -18,6 +18,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Reflection;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,10 +40,51 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Configurar o Swagger para usar o arquivo XML de documentação
+    // Configurar o Swagger para usar o arquivo XML de documentação da API
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
-    options.IncludeXmlComments(xmlPath);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+
+    // Incluir explicitamente o arquivo XML do projeto de controllers
+    var controllersXmlFilename = "CadastroPessoas.Adapters.Input.Api.xml";
+    var controllersXmlPath = Path.Combine(AppContext.BaseDirectory, controllersXmlFilename);
+    if (File.Exists(controllersXmlPath))
+    {
+        options.IncludeXmlComments(controllersXmlPath);
+    }
+    else
+    {
+        // Log para ajudar a depurar se o arquivo não for encontrado
+        Console.WriteLine($"AVISO: Arquivo de documentação {controllersXmlPath} não encontrado.");
+    }
+
+    // Adicionar documentação XML de outros projetos referenciados
+    var currentAssembly = Assembly.GetExecutingAssembly();
+    var referencedAssemblies = currentAssembly.GetReferencedAssemblies()
+        .Where(a => a.Name != null && a.Name.StartsWith("CadastroPessoas"));
+    
+    foreach (var assemblyName in referencedAssemblies)
+    {
+        try
+        {
+            var refXmlName = $"{assemblyName.Name}.xml";
+            var refXmlPath = Path.Combine(AppContext.BaseDirectory, refXmlName);
+            if (File.Exists(refXmlPath))
+            {
+                options.IncludeXmlComments(refXmlPath);
+            }
+        }
+        catch
+        {
+            // Ignorar erros se um arquivo XML não existir
+        }
+    }
+
+    // Habilitar suporte para anotações Swagger
+    options.EnableAnnotations();
 });
 
 // Configurar o banco de dados
@@ -107,6 +149,10 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "API de Cadastro de Pessoas v1");
         c.RoutePrefix = string.Empty;
+        // Configurações adicionais para melhorar a exibição da documentação
+        c.DefaultModelsExpandDepth(-1); // Oculta o esquema na UI por padrão
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List); // Expande a lista de operações
+        c.DisplayRequestDuration(); // Mostra a duração da requisição
     });
 }
 

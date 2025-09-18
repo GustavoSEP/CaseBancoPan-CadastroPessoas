@@ -127,8 +127,25 @@ namespace CadastroPessoas.Adapters.Output.SQL.Repositories
         {
             try
             {
-                _context.PessoasFisicas.Update(pessoa);
+                // Buscar a entidade atual para remover do contexto
+                var existingEntity = await _context.PessoasFisicas
+                    .Include(p => p.Endereco)
+                    .FirstOrDefaultAsync(p => p.Id == pessoa.Id);
+
+                if (existingEntity == null)
+                {
+                    throw new Exception($"Pessoa Física com ID {pessoa.Id} não encontrada para atualização.");
+                }
+
+                // Remover a entidade existente do contexto
+                _context.PessoasFisicas.Remove(existingEntity);
+                
+                // Adicionar a nova entidade (com as alterações)
+                _context.PessoasFisicas.Add(pessoa);
+                
+                // Salvar as alterações
                 await _context.SaveChangesAsync();
+                
                 return pessoa;
             }
             catch (Exception ex)
@@ -277,8 +294,25 @@ namespace CadastroPessoas.Adapters.Output.SQL.Repositories
         {
             try
             {
-                _context.PessoasJuridicas.Update(pessoa);
+                // Buscar a entidade atual para remover do contexto
+                var existingEntity = await _context.PessoasJuridicas
+                    .Include(p => p.Endereco)
+                    .FirstOrDefaultAsync(p => p.Id == pessoa.Id);
+
+                if (existingEntity == null)
+                {
+                    throw new Exception($"Pessoa Jurídica com ID {pessoa.Id} não encontrada para atualização.");
+                }
+
+                // Remover a entidade existente do contexto
+                _context.PessoasJuridicas.Remove(existingEntity);
+                
+                // Adicionar a nova entidade (com as alterações)
+                _context.PessoasJuridicas.Add(pessoa);
+                
+                // Salvar as alterações
                 await _context.SaveChangesAsync();
+                
                 return pessoa;
             }
             catch (Exception ex)
