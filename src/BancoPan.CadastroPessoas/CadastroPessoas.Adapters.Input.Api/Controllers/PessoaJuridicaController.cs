@@ -11,6 +11,13 @@ using Microsoft.Extensions.Logging;
 
 namespace CadastroPessoas.Adapters.Input.Api.Controllers
 {
+    /// <summary>
+    /// API para gerenciamento de pessoas jurídicas
+    /// </summary>
+    /// <remarks>
+    /// Esta API fornece endpoints para operações CRUD (Create, Read, Update, Delete) 
+    /// de pessoas jurídicas, incluindo validação de CNPJ e consulta de endereço por CEP.
+    /// </remarks>
     [ApiController]
     [Route("api/v1/pessoas/juridicas")]
     public class PessoaJuridicaController : ControllerBase
@@ -21,6 +28,9 @@ namespace CadastroPessoas.Adapters.Input.Api.Controllers
         private readonly IDeletePessoaJuridicaUseCase _deleteUseCase;
         private readonly ILogger<PessoaJuridicaController> _logger;
 
+        /// <summary>
+        /// Inicializa uma nova instância do controlador de pessoas jurídicas
+        /// </summary>
         public PessoaJuridicaController(
             ICreatePessoaJuridicaUseCase createUseCase,
             IGetPessoaJuridicaUseCase getUseCase,
@@ -35,6 +45,30 @@ namespace CadastroPessoas.Adapters.Input.Api.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Cadastra uma nova pessoa jurídica
+        /// </summary>
+        /// <param name="request">Dados da pessoa jurídica a ser cadastrada</param>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        ///     POST /api/v1/pessoas/juridicas
+        ///     {
+        ///        "razaoSocial": "Empresa XYZ Ltda.",
+        ///        "nomeFantasia": "XYZ Tecnologia",
+        ///        "cnpj": "12.345.678/0001-90",
+        ///        "cep": "01310-100",
+        ///        "numero": "1000",
+        ///        "complemento": "Andar 10"
+        ///     }
+        ///     
+        /// O CNPJ pode ser informado com ou sem formatação. O endereço será 
+        /// complementado automaticamente com base no CEP informado.
+        /// </remarks>
+        /// <response code="201">Pessoa jurídica criada com sucesso</response>
+        /// <response code="400">Dados inválidos ou CNPJ já cadastrado</response>
+        /// <response code="500">Erro interno do servidor</response>
+        /// <returns>A pessoa jurídica recém-criada com seu ID gerado</returns>
         [HttpPost]
         [ProducesResponseType(typeof(PessoaJuridicaResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -86,6 +120,17 @@ namespace CadastroPessoas.Adapters.Input.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Obtém uma pessoa jurídica pelo ID
+        /// </summary>
+        /// <param name="id">ID da pessoa jurídica</param>
+        /// <remarks>
+        /// Retorna os dados completos de uma pessoa jurídica com base no ID fornecido.
+        /// </remarks>
+        /// <response code="200">Pessoa jurídica encontrada</response>
+        /// <response code="404">Pessoa jurídica não encontrada</response>
+        /// <response code="500">Erro interno do servidor</response>
+        /// <returns>Dados da pessoa jurídica</returns>
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(PessoaJuridicaResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -127,6 +172,18 @@ namespace CadastroPessoas.Adapters.Input.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Obtém uma pessoa jurídica pelo CNPJ
+        /// </summary>
+        /// <param name="cnpj">CNPJ da pessoa jurídica (com ou sem formatação)</param>
+        /// <remarks>
+        /// Retorna os dados completos de uma pessoa jurídica com base no CNPJ fornecido.
+        /// O CNPJ pode ser informado com ou sem formatação (pontos, traço e barra).
+        /// </remarks>
+        /// <response code="200">Pessoa jurídica encontrada</response>
+        /// <response code="404">Pessoa jurídica não encontrada ou CNPJ inválido</response>
+        /// <response code="500">Erro interno do servidor</response>
+        /// <returns>Dados da pessoa jurídica</returns>
         [HttpGet("cnpj/{cnpj}")]
         [ProducesResponseType(typeof(PessoaJuridicaResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -168,6 +225,15 @@ namespace CadastroPessoas.Adapters.Input.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Lista todas as pessoas jurídicas cadastradas
+        /// </summary>
+        /// <remarks>
+        /// Retorna uma lista com todas as pessoas jurídicas cadastradas no sistema.
+        /// </remarks>
+        /// <response code="200">Lista de pessoas jurídicas</response>
+        /// <response code="500">Erro interno do servidor</response>
+        /// <returns>Lista de pessoas jurídicas</returns>
         [HttpGet]
         [ProducesResponseType(typeof(List<PessoaJuridicaResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
@@ -208,6 +274,31 @@ namespace CadastroPessoas.Adapters.Input.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Atualiza os dados de uma pessoa jurídica
+        /// </summary>
+        /// <param name="id">ID da pessoa jurídica a ser atualizada</param>
+        /// <param name="request">Dados a serem atualizados</param>
+        /// <remarks>
+        /// Exemplo de requisição:
+        /// 
+        ///     PUT /api/v1/pessoas/juridicas/1
+        ///     {
+        ///        "razaoSocial": "Empresa XYZ Ltda. Atualizada",
+        ///        "nomeFantasia": "XYZ Tech",
+        ///        "cep": "04538-132",
+        ///        "numero": "1500",
+        ///        "complemento": "Torre B, 15º andar"
+        ///     }
+        ///     
+        /// A atualização é parcial, ou seja, apenas os campos informados serão atualizados.
+        /// O CNPJ não pode ser alterado.
+        /// </remarks>
+        /// <response code="200">Pessoa jurídica atualizada com sucesso</response>
+        /// <response code="404">Pessoa jurídica não encontrada</response>
+        /// <response code="400">Dados inválidos</response>
+        /// <response code="500">Erro interno do servidor</response>
+        /// <returns>Dados atualizados da pessoa jurídica</returns>
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(PessoaJuridicaResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -262,6 +353,17 @@ namespace CadastroPessoas.Adapters.Input.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Remove uma pessoa jurídica
+        /// </summary>
+        /// <param name="id">ID da pessoa jurídica a ser removida</param>
+        /// <remarks>
+        /// Remove permanentemente uma pessoa jurídica do sistema.
+        /// </remarks>
+        /// <response code="204">Pessoa jurídica removida com sucesso</response>
+        /// <response code="404">Pessoa jurídica não encontrada</response>
+        /// <response code="500">Erro interno do servidor</response>
+        /// <returns>Nenhum conteúdo</returns>
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
