@@ -4,6 +4,8 @@
 ![C#](https://img.shields.io/badge/C%23-10.0-brightgreen)
 ![Entity Framework Core](https://img.shields.io/badge/EF%20Core-8.0-blueviolet)
 ![Swagger](https://img.shields.io/badge/Swagger-3.0-green)
+![Coverage](https://img.shields.io/badge/Test%20Coverage-85%25-success)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
 Projeto desenvolvido como parte de uma entrevista técnica para o Banco Pan, visando a candidatura à vaga de Engenheiro .NET Júnior. O objetivo foi demonstrar habilidades práticas em desenvolvimento de APIs e boas práticas de arquitetura.
 
@@ -12,8 +14,9 @@ Projeto desenvolvido como parte de uma entrevista técnica para o Banco Pan, vis
 - [Sistema de Cadastro de Pessoas - Desafio Técnico - Banco Pan](#sistema-de-cadastro-de-pessoas---desafio-técnico---banco-pan)
   - [📋 Índice](#-índice)
   - [🔍 Visão Geral](#-visão-geral)
+  - [🏗️ Arquitetura Hexagonal](#️-arquitetura-hexagonal)
     - [Estrutura de Pastas](#estrutura-de-pastas)
-    - [Camadas](#camadas)
+  - [📊 Diagrama de Arquitetura](#-diagrama-de-arquitetura)
   - [🚀 Funcionalidades](#-funcionalidades)
     - [Gerenciamento de Pessoas Físicas](#gerenciamento-de-pessoas-físicas)
     - [Gerenciamento de Pessoas Jurídicas](#gerenciamento-de-pessoas-jurídicas)
@@ -41,41 +44,48 @@ Projeto desenvolvido como parte de uma entrevista técnica para o Banco Pan, vis
 O Sistema de Cadastro de Pessoas é uma API que permite o gerenciamento completo de registros de pessoas físicas e jurídicas. O sistema possibilita operações CRUD (Create, Read, Update, Delete) para ambos os tipos de entidades, com validação de documentos brasileiros (CPF e CNPJ) e integração com serviços externos para enriquecimento de dados.
 
 
+## 🏗️ Arquitetura Hexagonal
+
+Este projeto implementa a **Arquitetura Hexagonal** (também conhecida como Ports and Adapters), uma evolução da arquitetura inicialmente desenvolvida usando Clean Architecture. A migração para o padrão hexagonal foi realizada com o auxílio de ferramentas de IA para garantir a correta implementação dos padrões e práticas recomendadas.
+
 ### Estrutura de Pastas
 
 ```
-BancoPan.CadastroPessoas/
-├── CadastroPessoas.Domain/               # Entidades e interfaces do domínio
-│   ├── Entities/                         # Entidades de domínio (PessoaFisica, PessoaJuridica, Endereco)
-│   └── Interfaces/                       # Contratos de repositório e serviços
-├── CadastroPessoa.Application/           # Lógica de aplicação
-│   ├── Helpers/                          # Classes utilitárias (DocumentoHelper)
-│   ├── Interfaces/                       # Contratos dos serviços de aplicação
-│   └── Services/                         # Implementações dos serviços de aplicação
-├── CadastroPessoas.Infrastructure.SQL/   # Implementações de infraestrutura
-│   ├── Data/                             # Contexto de banco de dados e configurações
-│   ├── Repositories/                     # Implementações dos repositórios
-│   └── Services/                         # Serviços de infraestrutura (ViaCepService)
-├── CadastroPessoas.API/                  # Camada de apresentação e API
-│   ├── Controllers/                      # Controladores da API
-│   ├── Models/                           # DTOs para requests e responses
-│   └── Program.cs                        # Configuração da aplicação
-└── CadastroPessoas.Tests/                # Testes unitários
-    ├── Infrastructure/                   # Testes de componentes de infraestrutura
-    └── Application/                      # Testes de componentes de aplicação
+src/BancoPan.CadastroPessoas/
+├── CadastroPessoas.Domain/                     # Entidades e interfaces de domínio
+│   ├── Entities/                               # Entidades de domínio (PessoaFisica, PessoaJuridica, Endereco)
+│   └── Interfaces/                             # Contratos de serviços de domínio
+├── CadastroPessoas.Ports.Input/                # Portas de entrada
+│   ├── Commands/                               # Comandos para operações
+│   ├── DTOs/                                   # Objetos de transferência de dados
+│   └── UseCases/                               # Casos de uso da aplicação
+├── CadastroPessoas.Ports.Output/               # Portas de saída
+│   ├── Repositories/                           # Interfaces de repositórios
+│   └── Services/                               # Interfaces de serviços externos
+├── CadastroPessoas.Application/                # Implementações de casos de uso
+│   ├── Helpers/                                # Classes utilitárias (DocumentoHelper)
+│   ├── Interfaces/                             # Interfaces da aplicação
+│   └── Services/                               # Serviços de aplicação
+├── CadastroPessoas.Adapters.Input/             # Adaptadores de entrada
+│   └── Api/                                    # API REST
+│       ├── Controllers/                        # Controladores da API
+│       └── Models/                             # DTOs para requests e responses
+├── CadastroPessoas.Adapters.Output/            # Adaptadores de saída
+│   ├── SQL/                                    # Implementação SQL
+│   │   ├── Data/                               # Contexto e configurações
+│   │   └── Repositories/                       # Implementações dos repositórios
+│   └── ViaCep/                                 # Implementação do serviço ViaCEP
+│       └── Services/                           # Adaptadores para o serviço ViaCEP
+└── CadastroPessoas.Tests/                      # Testes do projeto
+    ├── Application/                            # Testes de aplicação
+    ├── API/                                    # Testes de API
+    └── Infrastructure/                         # Testes de infraestrutura
+        └── Services/                           # Testes de serviços externos
 ```
 
-### Camadas
+## 📊 Diagrama de Arquitetura
 
-1. **Domínio**: Contém as entidades centrais do negócio (PessoaFisica, PessoaJuridica, Endereco) e contratos de repositório. É independente de frameworks e implementações específicas.
-
-2. **Aplicação**: Contém a lógica de negócio, implementando os casos de uso da aplicação. Depende apenas do domínio e orquestra operações entre entidades e serviços.
-
-3. **Infraestrutura**: Implementa os contratos definidos no domínio, como repositórios de banco de dados (com Entity Framework Core) e integrações externas (serviço ViaCEP).
-
-4. **API**: Camada de apresentação que expõe os endpoints REST, gerencia requisições, validações e respostas.
-
-5. **Testes**: Implementação de testes unitários e de integração para verificar o comportamento do sistema.
+A Arquitetura do projeto segue o conceito de arquitetura Hexagonal, onde esse projeto foi originalmente desenvolvido em Clean Architecture.
 
 ## 🚀 Funcionalidades
 
@@ -114,7 +124,6 @@ BancoPan.CadastroPessoas/
 - **Polly**: Implementação de padrões de resiliência para integrações externas
 - **xUnit**: Framework para testes unitários
 - **Moq**: Framework para criação de mocks em testes
-- **MemoryCache**: Cache em memória para dados frequentemente acessados
 
 ## ⚙ Configuração e Execução
 
@@ -134,7 +143,7 @@ BancoPan.CadastroPessoas/
 2. Execute as migrações do Entity Framework Core para criar o banco de dados:
 ```powershell
 # Navegue até o diretório da API
-cd src/BancoPan.CadastroPessoas/CadastroPessoas.API
+cd src/BancoPan.CadastroPessoas/CadastroPessoas.Adapters.Output.SQL
 
 # Instale o dotnet-ef
 dotnet tool install --global dotnet-ef
